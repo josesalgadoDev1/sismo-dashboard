@@ -154,7 +154,7 @@ export default function Home() {
     // Título y Header
     doc.setFontSize(18);
     doc.setTextColor(40, 40, 40);
-    doc.text("REPORTE DE MONITORÉO SÍSMICO", 14, 22);
+    doc.text("REPORTE DE MONITOREO SÍSMICO", 14, 22);
     doc.setFontSize(11);
     doc.setTextColor(100, 100, 100);
     doc.text("Área de Influencia: Mina Doña Inés de Collahuasi", 14, 28);
@@ -282,7 +282,7 @@ export default function Home() {
       <header>
         <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '0.5rem'}}>
            <Activity size={32} color="#3b82f6" />
-           <h1>Earthquake Pulse Dashboard</h1>
+           <h1>Monitoreo Sísmico Collahuasi</h1>
         </div>
         <p style={{textAlign: 'center', color: '#94a3b8', marginBottom: '2rem'}}>Sistema de Monitoreo Sísmico de Alta Precisión</p>
       </header>
@@ -316,9 +316,9 @@ export default function Home() {
 
       {mounted && (
         <div className="export-buttons">
-          <button className="btn btn-secondary" onClick={exportExcel} disabled={sismos.length === 0}><TableIcon size={18} /> Excel Pro</button>
-          <button className="btn btn-secondary" onClick={exportCSV} disabled={sismos.length === 0}><FileText size={18} /> CSV</button>
-          <button className="btn btn-secondary" onClick={exportPDF} disabled={sismos.length === 0}><FileText size={18} /> PDF Premium</button>
+          <button className="btn btn-secondary" onClick={exportExcel} disabled={sismos.length === 0}><TableIcon size={18} /> Exportar Excel</button>
+          <button className="btn btn-secondary" onClick={exportCSV} disabled={sismos.length === 0}><FileText size={18} /> Exportar CSV</button>
+          <button className="btn btn-secondary" onClick={exportPDF} disabled={sismos.length === 0}><FileText size={18} /> Exportar PDF</button>
           <button className="btn btn-secondary" onClick={exportKMZ} disabled={sismos.length === 0}><Globe size={18} /> Google Earth</button>
         </div>
       )}
