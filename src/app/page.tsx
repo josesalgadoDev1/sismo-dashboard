@@ -103,9 +103,31 @@ export default function Home() {
     setPage(1);
   };
 
-  const exportExcel = () => {
+  const fetchFullData = async () => {
+    const params = new URLSearchParams();
+    if (filters.minMag) params.append("minMag", filters.minMag);
+    if (filters.maxMag) params.append("maxMag", filters.maxMag);
+    if (filters.startDate) params.append("startDate", filters.startDate);
+    if (filters.endDate) params.append("endDate", filters.endDate);
+    if (filters.maxDist) params.append("maxDist", filters.maxDist);
+    params.append("limit", "2000"); // Límite alto para exportación completa
+    
+    try {
+      const res = await fetch(`/api/sismos?${params.toString()}`);
+      const result = await res.json();
+      return result.data || [];
+    } catch (err) {
+      console.error("Export fetch error:", err);
+      return [];
+    }
+  };
+
+  const exportExcel = async () => {
+    const allData = await fetchFullData();
+    if (allData.length === 0) return;
+
     // Preparar datos con cabeceras bonitas
-    const dataToExport = sismos.map(s => ({
+    const dataToExport = allData.map((s: Sismo) => ({
       "Fecha Sismo": new Date(s.fecha_sismo).toLocaleString("es-CL"),
       "Magnitud": Number(s.magnitud).toFixed(1),
       "Profundidad (km)": s.profundidad,
@@ -128,8 +150,11 @@ export default function Home() {
     XLSX.writeFile(wb, "Reporte_Sismos_Collahuasi.xlsx");
   };
 
-  const exportCSV = () => {
-    const dataToExport = sismos.map(s => ({
+  const exportCSV = async () => {
+    const allData = await fetchFullData();
+    if (allData.length === 0) return;
+
+    const dataToExport = allData.map((s: Sismo) => ({
       "Fecha": new Date(s.fecha_sismo).toLocaleString("es-CL"),
       "Magnitud": s.magnitud,
       "Nivel": s.nivel_alerta,
@@ -145,7 +170,10 @@ export default function Home() {
     link.click();
   };
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
+    const allData = await fetchFullData();
+    if (allData.length === 0) return;
+
     const doc = new jsPDF() as any;
     
     // Colores corporativos
@@ -165,7 +193,7 @@ export default function Home() {
     doc.setLineWidth(1);
     doc.line(14, 38, 196, 38);
 
-    const tableData = sismos.map(s => [
+    const tableData = allData.map((s: Sismo) => [
       new Date(s.fecha_sismo).toLocaleString("es-CL"),
       Number(s.magnitud).toFixed(1),
       `${s.profundidad} km`,
@@ -204,6 +232,9 @@ export default function Home() {
   };
 
   const exportKMZ = async () => {
+    const allData = await fetchFullData();
+    if (allData.length === 0) return;
+
     let kml = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
@@ -221,7 +252,7 @@ export default function Home() {
       <IconStyle><Icon><href>http://maps.google.com/mapfiles/kml/paddle/grn-circle.png</href></Icon></IconStyle>
     </Style>`;
 
-    sismos.forEach(s => {
+    allData.forEach((s: Sismo) => {
       const lat = -20.98 + (Math.random() - 0.5) * 0.5;
       const lon = -68.66 + (Math.random() - 0.5) * 0.5;
       
