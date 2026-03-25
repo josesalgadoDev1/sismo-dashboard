@@ -34,6 +34,9 @@ interface Sismo {
   distancia_km: number;
   nivel_alerta: string;
   fecha_notificacion: string;
+  latitud: string;
+  longitud: string;
+  escala: string;
 }
 
 export default function Home() {
@@ -154,9 +157,11 @@ export default function Home() {
     // Preparar datos con cabeceras bonitas
     const dataToExport = allData.map((s: Sismo) => ({
       "Fecha Sismo": new Date(s.fecha_sismo).toLocaleString("es-CL"),
-      "Magnitud": Number(s.magnitud).toFixed(1),
+      "Magnitud": `${Number(s.magnitud).toFixed(1)} ${s.escala || 'Ml'}`,
       "Profundidad (km)": s.profundidad,
       "Ubicación": s.ubicacion,
+      "Latitud": s.latitud || "-",
+      "Longitud": s.longitud || "-",
       "Distancia a Collahuasi (km)": s.distancia_km,
       "Nivel de Alerta": s.nivel_alerta,
       "Fecha Notificación": new Date(s.fecha_notificacion).toLocaleString("es-CL")
@@ -181,9 +186,11 @@ export default function Home() {
 
     const dataToExport = allData.map((s: Sismo) => ({
       "Fecha": new Date(s.fecha_sismo).toLocaleString("es-CL"),
-      "Magnitud": s.magnitud,
+      "Magnitud": `${s.magnitud} ${s.escala || 'Ml'}`,
       "Nivel": s.nivel_alerta,
-      "Ubicacion": s.ubicacion
+      "Ubicacion": s.ubicacion,
+      "Latitud": s.latitud || "-",
+      "Longitud": s.longitud || "-"
     }));
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const csv = XLSX.utils.sheet_to_csv(ws);
@@ -220,15 +227,15 @@ export default function Home() {
 
     const tableData = allData.map((s: Sismo) => [
       new Date(s.fecha_sismo).toLocaleString("es-CL"),
-      Number(s.magnitud).toFixed(1),
+      `${Number(s.magnitud).toFixed(1)} ${s.escala || 'Ml'}`,
       `${s.profundidad} km`,
-      s.ubicacion,
+      `${s.latitud || '-'}, ${s.longitud || '-'}`,
       `${s.distancia_km} km`,
       s.nivel_alerta
     ]);
 
     autoTable(doc, {
-      head: [['Fecha', 'Mag', 'Prof', 'Ubicación', 'Dist', 'Nivel']],
+      head: [['Fecha', 'Mag', 'Prof', 'Coordenadas', 'Dist', 'Nivel']],
       body: tableData,
       startY: 45,
       styles: { fontSize: 9, cellPadding: 3 },
@@ -278,8 +285,9 @@ export default function Home() {
     </Style>`;
 
     allData.forEach((s: Sismo) => {
-      const lat = -20.98 + (Math.random() - 0.5) * 0.5;
-      const lon = -68.66 + (Math.random() - 0.5) * 0.5;
+      // Use real coordinates if they exist, otherwise fallback to random mock locations
+      const lat = s.latitud ? parseFloat(s.latitud) : -20.98 + (Math.random() - 0.5) * 0.5;
+      const lon = s.longitud ? parseFloat(s.longitud) : -68.66 + (Math.random() - 0.5) * 0.5;
       
       let style = '#normal';
       if (s.nivel_alerta === 'ALARMA') style = '#alarma';
@@ -409,12 +417,19 @@ export default function Home() {
             {sismos.map((s, i) => (
               <div key={s.id} className="glass-card earthquake-item" style={{animationDelay: `${i * 0.05}s`}}>
                 <div className={`magnitude-badge ${getMagColor(s.magnitud)}`}>
-                  {Number(s.magnitud).toFixed(1)}
+                  {Number(s.magnitud).toFixed(1)} <span style={{fontSize: '0.7rem', opacity: 0.8}}>{s.escala || 'Ml'}</span>
                 </div>
                 <div>
                   <div style={{fontWeight: 700, fontSize: '1.1rem'}}>{s.ubicacion}</div>
-                  <div style={{fontSize: '0.85rem', color: '#94a3b8'}}>
-                    {new Date(s.fecha_sismo).toLocaleString("es-CL")}
+                  <div style={{display: 'flex', gap: '1rem', marginTop: '0.2rem', alignItems: 'center', flexWrap: 'wrap'}}>
+                    <span style={{fontSize: '0.85rem', color: 'var(--text-muted)'}}>
+                      {new Date(s.fecha_sismo).toLocaleString("es-CL")}
+                    </span>
+                    {s.latitud && s.longitud && (
+                      <span className="badge" title="Coordenadas GPS" style={{fontSize: '0.75rem', padding: '2px 8px', letterSpacing: '0.5px'}}>
+                        📍 {s.latitud}, {s.longitud}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div style={{textAlign: 'center'}}>

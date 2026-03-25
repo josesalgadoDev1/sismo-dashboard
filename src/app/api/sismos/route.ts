@@ -59,7 +59,10 @@ export async function GET(request: Request) {
         distancia_km, 
         nivel_alerta, 
         TO_CHAR(fecha_notificacion, 'YYYY-MM-DD"T"HH24:MI:SS') as fecha_notificacion,
-        sismo_hash 
+        sismo_hash,
+        latitud,
+        longitud,
+        escala
       FROM alertas_sismicas 
       ${whereClause} 
       ORDER BY alertas_sismicas.fecha_sismo DESC 
@@ -78,3 +81,4 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
