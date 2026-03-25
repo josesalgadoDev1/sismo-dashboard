@@ -126,18 +126,25 @@ h1 {
 
 .earthquake-item {
   display: grid;
-  grid-template-columns: 80px 1fr 100px 120px 150px;
+  grid-template-columns: 80px 1fr 120px 120px 140px;
   align-items: center;
-  padding: 1.2rem;
-  gap: 1rem;
+  padding: 1.5rem 2rem;
+  gap: 2.5rem;
+  margin-bottom: 1.2rem;
 }
 
 .magnitude-badge {
-  font-weight: 800;
-  font-size: 1.2rem;
-  text-align: center;
-  padding: 0.5rem;
-  border-radius: 12px;
+  width: 65px;
+  height: 65px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  font-weight: 900;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .magnitude-high { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }

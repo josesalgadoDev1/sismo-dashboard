@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { 
-  Activity, 
-  Map as MapIcon, 
-  Filter, 
-  Download, 
-  FileText, 
-  Table as TableIcon, 
+import {
+  Activity,
+  Map as MapIcon,
+  Filter,
+  Download,
+  FileText,
+  Table as TableIcon,
   Globe,
   Calendar,
   Zap,
@@ -139,7 +139,7 @@ export default function Home() {
     if (filters.endDate) params.append("endDate", filters.endDate);
     if (filters.maxDist) params.append("maxDist", filters.maxDist);
     params.append("limit", "2000"); // Límite alto para exportación completa
-    
+
     try {
       const res = await fetch(`/api/sismos?${params.toString()}`);
       const result = await res.json();
@@ -157,7 +157,7 @@ export default function Home() {
     // Preparar datos con cabeceras bonitas
     const dataToExport = allData.map((s: Sismo) => ({
       "Fecha Sismo": new Date(s.fecha_sismo).toLocaleString("es-CL"),
-      "Magnitud": `${Number(s.magnitud).toFixed(1)} ${s.escala || 'Ml'}`,
+      "Magnitud": `${Number(s.magnitud).toFixed(1)} ${s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml(Richter)'}`,
       "Profundidad (km)": s.profundidad,
       "Ubicación": s.ubicacion,
       "Latitud": s.latitud || "-",
@@ -168,7 +168,7 @@ export default function Home() {
     }));
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
-    
+
     // Auto-size columnas (aproximado)
     const colWidths = [
       { wch: 20 }, { wch: 10 }, { wch: 15 }, { wch: 40 }, { wch: 25 }, { wch: 15 }, { wch: 20 }
@@ -186,7 +186,7 @@ export default function Home() {
 
     const dataToExport = allData.map((s: Sismo) => ({
       "Fecha": new Date(s.fecha_sismo).toLocaleString("es-CL"),
-      "Magnitud": `${s.magnitud} ${s.escala || 'Ml'}`,
+      "Magnitud": `${Number(s.magnitud).toFixed(1)} ${s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml (Richter)'}`,
       "Nivel": s.nivel_alerta,
       "Ubicacion": s.ubicacion,
       "Latitud": s.latitud || "-",
@@ -207,10 +207,10 @@ export default function Home() {
     if (allData.length === 0) return;
 
     const doc = new jsPDF() as any;
-    
+
     // Colores corporativos
     const primaryColor: [number, number, number] = [59, 130, 246]; // #3b82f6
-    
+
     // Título y Header
     doc.setFontSize(18);
     doc.setTextColor(40, 40, 40);
@@ -227,7 +227,7 @@ export default function Home() {
 
     const tableData = allData.map((s: Sismo) => [
       new Date(s.fecha_sismo).toLocaleString("es-CL"),
-      `${Number(s.magnitud).toFixed(1)} ${s.escala || 'Ml'}`,
+      `${Number(s.magnitud).toFixed(1)} ${s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml(Richter)'}`,
       `${s.profundidad} km`,
       `${s.latitud || '-'}, ${s.longitud || '-'}`,
       `${s.distancia_km} km`,
@@ -239,8 +239,8 @@ export default function Home() {
       body: tableData,
       startY: 45,
       styles: { fontSize: 9, cellPadding: 3 },
-      headStyles: { 
-        fillColor: primaryColor, 
+      headStyles: {
+        fillColor: primaryColor,
         textColor: [255, 255, 255] as [number, number, number],
         fontStyle: 'bold'
       },
@@ -288,7 +288,7 @@ export default function Home() {
       // Use real coordinates if they exist, otherwise fallback to random mock locations
       const lat = s.latitud ? parseFloat(s.latitud) : -20.98 + (Math.random() - 0.5) * 0.5;
       const lon = s.longitud ? parseFloat(s.longitud) : -68.66 + (Math.random() - 0.5) * 0.5;
-      
+
       let style = '#normal';
       if (s.nivel_alerta === 'ALARMA') style = '#alarma';
       else if (s.nivel_alerta === 'ALERTA') style = '#alerta';
@@ -316,12 +316,12 @@ export default function Home() {
     kml += `
   </Document>
 </kml>`;
-    
+
     try {
       const zip = new JSZip();
       zip.file("doc.kml", kml);
       const content = await zip.generateAsync({ type: "blob" });
-      
+
       const url = URL.createObjectURL(content);
       const link = document.createElement("a");
       link.setAttribute("href", url);
@@ -343,48 +343,48 @@ export default function Home() {
 
   return (
     <main className="container animate-fade-in">
-      <header style={{position: 'relative', marginBottom: '1rem'}}>
-        <div style={{position: 'absolute', right: 0, top: 0}}>
+      <header style={{ position: 'relative', marginBottom: '1rem' }}>
+        <div style={{ position: 'absolute', right: 0, top: 0 }}>
           {mounted && (
-            <button 
-              className="btn-icon" 
+            <button
+              className="btn-icon"
               onClick={toggleTheme}
               title={theme === "dark" ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
-              style={{borderRadius: '50%'}}
+              style={{ borderRadius: '50%' }}
             >
               {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
             </button>
           )}
         </div>
-        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '0.5rem'}}>
-           <Activity size={32} color="#3b82f6" />
-           <h1>Monitoreo Sísmico Collahuasi</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+          <Activity size={32} color="#3b82f6" />
+          <h1>Monitoreo Sísmico Collahuasi</h1>
         </div>
         <p className="subtitle">Sistema de Monitoreo Sísmico de Alta Precisión</p>
       </header>
 
       <section className="glass-card filters-section">
         <div className="filter-group">
-          <label><Calendar size={14} style={{marginRight: 4}} /> Fecha Inicio</label>
-          <input type="date" value={filters.startDate} onChange={(e) => setFilters({...filters, startDate: e.target.value})} />
+          <label><Calendar size={14} style={{ marginRight: 4 }} /> Fecha Inicio</label>
+          <input type="date" value={filters.startDate} onChange={(e) => setFilters({ ...filters, startDate: e.target.value })} />
         </div>
         <div className="filter-group">
-          <label><Calendar size={14} style={{marginRight: 4}} /> Fecha Fin</label>
-          <input type="date" value={filters.endDate} onChange={(e) => setFilters({...filters, endDate: e.target.value})} />
+          <label><Calendar size={14} style={{ marginRight: 4 }} /> Fecha Fin</label>
+          <input type="date" value={filters.endDate} onChange={(e) => setFilters({ ...filters, endDate: e.target.value })} />
         </div>
         <div className="filter-group">
-          <label><Zap size={14} style={{marginRight: 4}} /> Mag. Mínima</label>
-          <input type="number" step="0.1" value={filters.minMag} onChange={(e) => setFilters({...filters, minMag: e.target.value})} placeholder="3.0" />
+          <label><Zap size={14} style={{ marginRight: 4 }} /> Mag. Mínima</label>
+          <input type="number" step="0.1" value={filters.minMag} onChange={(e) => setFilters({ ...filters, minMag: e.target.value })} placeholder="3.0" />
         </div>
         <div className="filter-group">
-          <label><Navigation size={14} style={{marginRight: 4}} /> Distancia Máx (km)</label>
-          <input type="number" value={filters.maxDist} onChange={(e) => setFilters({...filters, maxDist: e.target.value})} placeholder="300" />
+          <label><Navigation size={14} style={{ marginRight: 4 }} /> Distancia Máx (km)</label>
+          <input type="number" value={filters.maxDist} onChange={(e) => setFilters({ ...filters, maxDist: e.target.value })} placeholder="300" />
         </div>
-        <div className="filter-group" style={{flexDirection: 'row', alignItems: 'flex-end', gap: '0.5rem'}}>
-          <button className="btn btn-primary" style={{flex: 1}} onClick={() => fetchSismos(1)}>
+        <div className="filter-group" style={{ flexDirection: 'row', alignItems: 'flex-end', gap: '0.5rem' }}>
+          <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => fetchSismos(1)}>
             <Filter size={18} /> Filtrar
           </button>
-          <button className="btn btn-secondary" style={{padding: '0.8rem'}} title="Limpiar Filtros" onClick={resetFilters}>
+          <button className="btn btn-secondary" style={{ padding: '0.8rem' }} title="Limpiar Filtros" onClick={resetFilters}>
             <RotateCcw size={18} />
           </button>
         </div>
@@ -401,60 +401,71 @@ export default function Home() {
 
       <section className="earthquake-list">
         {loading ? (
-          <div className="glass-card" style={{textAlign: 'center', padding: '3rem'}}>
-            <div className="animate-pulse" style={{fontSize: '1.2rem', color: '#3b82f6'}}>Conectando con base de datos...</div>
+          <div className="glass-card" style={{ textAlign: 'center', padding: '3rem' }}>
+            <div className="animate-pulse" style={{ fontSize: '1.2rem', color: '#3b82f6' }}>Conectando con base de datos...</div>
           </div>
         ) : sismos.length === 0 ? (
-          <div className="glass-card" style={{textAlign: 'center', padding: '3rem'}}>
-            <div style={{fontSize: '1.2rem', color: '#94a3b8'}}>No se encontraron registros para estos filtros.</div>
+          <div className="glass-card" style={{ textAlign: 'center', padding: '3rem' }}>
+            <div style={{ fontSize: '1.2rem', color: '#94a3b8' }}>No se encontraron registros para estos filtros.</div>
           </div>
         ) : (
           <>
-            <div style={{marginBottom: '1rem', padding: '0 1rem', display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: '0.85rem'}}>
+            <div style={{ marginBottom: '1rem', padding: '0 1rem', display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: '0.85rem' }}>
               <span>Mostrando {sismos.length} de {total} sismos</span>
               <span>Página {page} de {totalPages}</span>
             </div>
             {sismos.map((s, i) => (
-              <div key={s.id} className="glass-card earthquake-item" style={{animationDelay: `${i * 0.05}s`}}>
+              <div key={s.id} className="glass-card earthquake-item" style={{ animationDelay: `${i * 0.05}s` }}>
                 <div className={`magnitude-badge ${getMagColor(s.magnitud)}`}>
-                  {Number(s.magnitud).toFixed(1)} <span style={{fontSize: '0.7rem', opacity: 0.8}}>{s.escala || 'Ml'}</span>
+                  {Number(s.magnitud).toFixed(1)}
                 </div>
                 <div>
-                  <div style={{fontWeight: 700, fontSize: '1.1rem'}}>{s.ubicacion}</div>
-                  <div style={{display: 'flex', gap: '1rem', marginTop: '0.2rem', alignItems: 'center', flexWrap: 'wrap'}}>
+                  <div style={{fontWeight: 700, fontSize: '1.2rem', marginBottom: '0.4rem'}}>{s.ubicacion}</div>
+                  <div style={{display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap'}}>
+                    <span style={{ 
+                      fontSize: '0.75rem', 
+                      fontWeight: 700, 
+                      color: 'var(--accent)', 
+                      background: 'var(--btn-bg)', 
+                      padding: '2px 8px', 
+                      borderRadius: '6px',
+                      border: '1px solid var(--card-border)'
+                    }}>
+                      {s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml Richter'}
+                    </span>
                     <span style={{fontSize: '0.85rem', color: 'var(--text-muted)'}}>
                       {new Date(s.fecha_sismo).toLocaleString("es-CL")}
                     </span>
                     {s.latitud && s.longitud && (
-                      <span className="badge" title="Coordenadas GPS" style={{fontSize: '0.75rem', padding: '2px 8px', letterSpacing: '0.5px'}}>
+                      <span style={{fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px'}}>
                         📍 {s.latitud}, {s.longitud}
                       </span>
                     )}
                   </div>
                 </div>
-                <div style={{textAlign: 'center'}}>
-                  <div style={{fontSize: '0.8rem', color: '#94a3b8'}}>Profundidad</div>
-                  <div style={{fontWeight: 600}}>{s.profundidad} km</div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Profundidad</div>
+                  <div style={{ fontWeight: 600 }}>{s.profundidad} km</div>
                 </div>
-                <div style={{textAlign: 'center'}}>
-                  <div style={{fontSize: '0.8rem', color: '#94a3b8'}}>Distancia</div>
-                  <div style={{fontWeight: 600, color: '#3b82f6'}}>{Number(s.distancia_km).toFixed(0)} km</div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Distancia</div>
+                  <div style={{ fontWeight: 600, color: '#3b82f6' }}>{Number(s.distancia_km).toFixed(0)} km</div>
                 </div>
-                <div style={{textAlign: 'right'}}>
+                <div style={{ textAlign: 'right' }}>
                   <span style={{
-                    padding: '6px 14px', 
-                    borderRadius: '20px', 
-                    fontSize: '0.75rem', 
+                    padding: '6px 14px',
+                    borderRadius: '20px',
+                    fontSize: '0.75rem',
                     fontWeight: 800,
-                    background: s.nivel_alerta === 'ALARMA' ? 'rgba(255, 0, 0, 0.15)' : 
-                               s.nivel_alerta === 'ALERTA' ? 'rgba(255, 140, 0, 0.15)' : 
-                               s.nivel_alerta === 'ADVERTENCIA' ? 'rgba(255, 215, 0, 0.15)' : 'rgba(76, 175, 80, 0.15)',
-                    color: s.nivel_alerta === 'ALARMA' ? '#ff0000' : 
-                           s.nivel_alerta === 'ALERTA' ? '#ff8c00' : 
-                           s.nivel_alerta === 'ADVERTENCIA' ? '#ffc107' : '#4caf50',
-                    border: `1px solid ${s.nivel_alerta === 'ALARMA' ? '#ff0000' : 
-                                         s.nivel_alerta === 'ALERTA' ? '#ff8c00' : 
-                                         s.nivel_alerta === 'ADVERTENCIA' ? '#ffc107' : '#4caf50'}`
+                    background: s.nivel_alerta === 'ALARMA' ? 'rgba(255, 0, 0, 0.15)' :
+                      s.nivel_alerta === 'ALERTA' ? 'rgba(255, 140, 0, 0.15)' :
+                        s.nivel_alerta === 'ADVERTENCIA' ? 'rgba(255, 215, 0, 0.15)' : 'rgba(76, 175, 80, 0.15)',
+                    color: s.nivel_alerta === 'ALARMA' ? '#ff0000' :
+                      s.nivel_alerta === 'ALERTA' ? '#ff8c00' :
+                        s.nivel_alerta === 'ADVERTENCIA' ? '#ffc107' : '#4caf50',
+                    border: `1px solid ${s.nivel_alerta === 'ALARMA' ? '#ff0000' :
+                      s.nivel_alerta === 'ALERTA' ? '#ff8c00' :
+                        s.nivel_alerta === 'ADVERTENCIA' ? '#ffc107' : '#4caf50'}`
                   }}>
                     {s.nivel_alerta}
                   </span>
@@ -463,8 +474,8 @@ export default function Home() {
             ))}
 
             <div className="pagination">
-              <button 
-                className="btn-icon" 
+              <button
+                className="btn-icon"
                 onClick={() => handlePageChange(1)}
                 disabled={page === 1}
                 title="Ir a la primera página"
@@ -472,15 +483,15 @@ export default function Home() {
                 <ChevronsLeft size={20} />
               </button>
 
-              <button 
-                className="btn-icon" 
+              <button
+                className="btn-icon"
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page === 1}
                 title="Anterior"
               >
                 <ChevronLeft size={20} />
               </button>
-              
+
               <div className="pagination-numbers">
                 {Array.from({ length: totalPages }, (_, i) => i + 1)
                   .filter(p => p === 1 || p === totalPages || Math.abs(page - p) <= 1)
@@ -501,8 +512,8 @@ export default function Home() {
                   }, [])}
               </div>
 
-              <button 
-                className="btn-icon" 
+              <button
+                className="btn-icon"
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page === totalPages}
                 title="Siguiente"
@@ -510,8 +521,8 @@ export default function Home() {
                 <ChevronRight size={20} />
               </button>
 
-              <button 
-                className="btn-icon" 
+              <button
+                className="btn-icon"
                 onClick={() => handlePageChange(totalPages)}
                 disabled={page === totalPages}
                 title="Ir a la última página"
@@ -523,8 +534,8 @@ export default function Home() {
         )}
       </section>
 
-      <footer style={{marginTop: '4rem', textAlign: 'center', color: '#64748b', fontSize: '0.875rem'}}>
-        <div style={{marginBottom: '0.5rem'}}>Sistema de Alerta Sísmica Collahuasi</div>
+      <footer style={{ marginTop: '4rem', textAlign: 'center', color: '#64748b', fontSize: '0.875rem' }}>
+        <div style={{ marginBottom: '0.5rem' }}>Sistema de Alerta Sísmica Collahuasi</div>
         &copy; 2026 Powered by Dares Tech Industrial Solutions
       </footer>
     </main>
