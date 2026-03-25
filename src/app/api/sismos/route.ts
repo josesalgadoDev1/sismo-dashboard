@@ -49,7 +49,22 @@ export async function GET(request: Request) {
     const total = parseInt(countRes.rows[0].count, 10);
 
     // Get paginated data
-    const query = `SELECT * FROM alertas_sismicas ${whereClause} ORDER BY fecha_sismo DESC LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+    const query = `
+      SELECT 
+        id, 
+        TO_CHAR(fecha_sismo, 'YYYY-MM-DD"T"HH24:MI:SS') as fecha_sismo,
+        magnitud, 
+        profundidad, 
+        ubicacion, 
+        distancia_km, 
+        nivel_alerta, 
+        TO_CHAR(fecha_notificacion, 'YYYY-MM-DD"T"HH24:MI:SS') as fecha_notificacion,
+        sismo_hash 
+      FROM alertas_sismicas 
+      ${whereClause} 
+      ORDER BY alertas_sismicas.fecha_sismo DESC 
+      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+    `;
     const dataRes = await pool.query(query, [...params, limit, offset]);
 
     return NextResponse.json({

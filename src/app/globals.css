@@ -11,6 +11,13 @@
   --glass-blur: 12px;
 }
 
+body.light-mode {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --card-border: rgba(0, 0, 0, 0.1);
+}
+
 * {
   box-sizing: border-box;
   padding: 0;

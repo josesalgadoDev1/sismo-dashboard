@@ -16,7 +16,9 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  RotateCcw
+  RotateCcw,
+  Sun,
+  Moon
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -40,7 +42,26 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const limit = 10;
+
+  useEffect(() => {
+    // Restaurar tema si está guardado en localStorage
+    const savedTheme = localStorage.getItem("sismo-theme");
+    if (savedTheme === "light" || savedTheme === "dark") {
+      setTheme(savedTheme);
+      if (savedTheme === "light") document.body.classList.add("light-mode");
+      else document.body.classList.remove("light-mode");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    localStorage.setItem("sismo-theme", newTheme);
+    if (newTheme === "light") document.body.classList.add("light-mode");
+    else document.body.classList.remove("light-mode");
+  };
 
   const [filters, setFilters] = useState({
     minMag: "",
@@ -312,7 +333,19 @@ export default function Home() {
 
   return (
     <main className="container animate-fade-in">
-      <header>
+      <header style={{position: 'relative', marginBottom: '1rem'}}>
+        <div style={{position: 'absolute', right: 0, top: 0}}>
+          {mounted && (
+            <button 
+              className="btn-icon" 
+              onClick={toggleTheme}
+              title={theme === "dark" ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
+              style={{borderRadius: '50%'}}
+            >
+              {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+          )}
+        </div>
         <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '0.5rem'}}>
            <Activity size={32} color="#3b82f6" />
            <h1>Monitoreo Sísmico Collahuasi</h1>
