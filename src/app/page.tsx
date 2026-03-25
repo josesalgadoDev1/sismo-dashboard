@@ -42,16 +42,18 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
   const limit = 10;
 
   useEffect(() => {
     // Restaurar tema si está guardado en localStorage
     const savedTheme = localStorage.getItem("sismo-theme");
-    if (savedTheme === "light" || savedTheme === "dark") {
-      setTheme(savedTheme);
-      if (savedTheme === "light") document.body.classList.add("light-mode");
-      else document.body.classList.remove("light-mode");
+    if (savedTheme === "dark") {
+      setTheme("dark");
+      document.body.classList.add("dark-mode");
+    } else if (savedTheme === "light") {
+      setTheme("light");
+      document.body.classList.remove("dark-mode");
     }
   }, []);
 
@@ -59,8 +61,8 @@ export default function Home() {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
     localStorage.setItem("sismo-theme", newTheme);
-    if (newTheme === "light") document.body.classList.add("light-mode");
-    else document.body.classList.remove("light-mode");
+    if (newTheme === "dark") document.body.classList.add("dark-mode");
+    else document.body.classList.remove("dark-mode");
   };
 
   const [filters, setFilters] = useState({
@@ -350,7 +352,7 @@ export default function Home() {
            <Activity size={32} color="#3b82f6" />
            <h1>Monitoreo Sísmico Collahuasi</h1>
         </div>
-        <p style={{textAlign: 'center', color: '#94a3b8', marginBottom: '2rem'}}>Sistema de Monitoreo Sísmico de Alta Precisión</p>
+        <p className="subtitle">Sistema de Monitoreo Sísmico de Alta Precisión</p>
       </header>
 
       <section className="glass-card filters-section">
