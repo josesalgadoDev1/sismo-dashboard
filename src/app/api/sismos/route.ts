@@ -18,9 +18,18 @@ export async function GET(request: Request) {
   const limit = parseInt(searchParams.get("limit") || "10", 10);
   const offset = parseInt(searchParams.get("offset") || "0", 10);
 
+  // --- CONFIGURACIÓN DE DESARROLLADOR ---
+  // Cambiar a 'false' para ocultar los 70 registros de prueba (MOCK-...)
+  const SHOW_MOCK_DATA = false;
+  // --------------------------------------
+
   let whereClause = " WHERE 1=1";
   const params: any[] = [];
   let paramIndex = 1;
+
+  if (!SHOW_MOCK_DATA) {
+    whereClause += " AND sismo_hash NOT LIKE 'MOCK-%'";
+  }
 
   if (minMag) {
     whereClause += ` AND magnitud >= $${paramIndex++}`;
