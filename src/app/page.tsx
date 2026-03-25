@@ -377,16 +377,13 @@ export default function Home() {
           <input type="number" step="0.1" value={filters.minMag} onChange={(e) => setFilters({ ...filters, minMag: e.target.value })} placeholder="3.0" />
         </div>
         <div className="filter-group">
-          <label>Distancia Máx (km)</label>
-          <div className="input-with-icon">
-            <Navigation size={18} />
-            <input 
-              type="number" 
-              placeholder="300" 
-              value={filters.maxDist} 
-              onChange={(e) => setFilters({...filters, maxDist: e.target.value})}
-            />
-          </div>
+          <label><Navigation size={14} style={{ marginRight: 4 }} /> Distancia Máx (km)</label>
+          <input 
+            type="number" 
+            placeholder="300" 
+            value={filters.maxDist} 
+            onChange={(e) => setFilters({...filters, maxDist: e.target.value})}
+          />
         </div>
         <div className="filter-group" style={{ flexDirection: 'row', alignItems: 'flex-end', gap: '0.5rem' }}>
           <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => fetchSismos(1)}>
