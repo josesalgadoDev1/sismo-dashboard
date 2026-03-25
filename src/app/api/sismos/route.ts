@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
   // --- CONFIGURACIÓN DE DESARROLLADOR ---
   // Cambiar a 'false' para ocultar los 70 registros de prueba (MOCK-...)
-  const SHOW_MOCK_DATA = false;
+  const SHOW_MOCK_DATA = true;
 
   // --------------------------------------
 
