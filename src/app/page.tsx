@@ -14,6 +14,8 @@ import {
   Navigation,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   RotateCcw
 } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -413,20 +415,58 @@ export default function Home() {
             <div className="pagination">
               <button 
                 className="btn-icon" 
+                onClick={() => handlePageChange(1)}
+                disabled={page === 1}
+                title="Ir a la primera página"
+              >
+                <ChevronsLeft size={20} />
+              </button>
+
+              <button 
+                className="btn-icon" 
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page === 1}
+                title="Anterior"
               >
                 <ChevronLeft size={20} />
               </button>
-              <div className="pagination-info">
-                Página {page} de {totalPages}
+              
+              <div className="pagination-numbers">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === totalPages || Math.abs(page - p) <= 1)
+                  .reduce((acc: any[], p, i, arr) => {
+                    if (i > 0 && p - arr[i - 1] > 1) {
+                      acc.push(<span key={`ellipsis-${p}`} className="pagination-ellipsis">...</span>);
+                    }
+                    acc.push(
+                      <button
+                        key={p}
+                        className={`btn-page ${page === p ? 'active' : ''}`}
+                        onClick={() => handlePageChange(p)}
+                      >
+                        {p}
+                      </button>
+                    );
+                    return acc;
+                  }, [])}
               </div>
+
               <button 
                 className="btn-icon" 
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page === totalPages}
+                title="Siguiente"
               >
                 <ChevronRight size={20} />
+              </button>
+
+              <button 
+                className="btn-icon" 
+                onClick={() => handlePageChange(totalPages)}
+                disabled={page === totalPages}
+                title="Ir a la última página"
+              >
+                <ChevronsRight size={20} />
               </button>
             </div>
           </>
