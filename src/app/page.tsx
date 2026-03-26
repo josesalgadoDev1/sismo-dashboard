@@ -267,10 +267,24 @@ export default function Home() {
     const allData = await fetchFullData();
     if (allData.length === 0) return;
 
+    const radiusKM = filters.maxDist ? parseFloat(filters.maxDist) : 30;
+    const centerLat = -20.94152;
+    const centerLon = -68.68253;
+    const rangeMeters = radiusKM * 1000 * 2.5; // Zoom automático según el radio
+
     let kml = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
     <name>Sismos Collahuasi</name>
+    <LookAt>
+      <longitude>${centerLon}</longitude>
+      <latitude>${centerLat}</latitude>
+      <altitude>0</altitude>
+      <heading>0</heading>
+      <tilt>0</tilt>
+      <range>${rangeMeters}</range>
+      <altitudeMode>relativeToGround</altitudeMode>
+    </LookAt>
     <Style id="alarma">
       <IconStyle><Icon><href>http://maps.google.com/mapfiles/kml/paddle/red-circle.png</href></Icon></IconStyle>
     </Style>
@@ -282,7 +296,52 @@ export default function Home() {
     </Style>
     <Style id="normal">
       <IconStyle><Icon><href>http://maps.google.com/mapfiles/kml/paddle/grn-circle.png</href></Icon></IconStyle>
+    </Style>
+    <Style id="mina">
+      <IconStyle>
+        <scale>1.5</scale>
+        <Icon><href>http://maps.google.com/mapfiles/kml/pal3/icon21.png</href></Icon>
+      </IconStyle>
+    </Style>
+    <Style id="radar-style">
+      <LineStyle>
+        <color>ccff0000</color>
+        <width>2</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>22ff0000</color>
+      </PolyStyle>
     </Style>`;
+
+    let circleCoords = "";
+    for (let i = 0; i <= 360; i += 5) {
+      const rad = i * Math.PI / 180;
+      const dLat = (radiusKM / 111.32) * Math.sin(rad);
+      const dLon = (radiusKM / (111.32 * Math.cos(centerLat * Math.PI / 180))) * Math.cos(rad);
+      circleCoords += `${centerLon + dLon},${centerLat + dLat},0 `;
+    }
+
+    kml += `
+    <Placemark>
+      <name>Radio Filtro (${radiusKM} km)</name>
+      <description>Área de escaneo actual desde Mina Collahuasi</description>
+      <styleUrl>#radar-style</styleUrl>
+      <Polygon>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              ${circleCoords.trim()}
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Mina Collahuasi</name>
+      <styleUrl>#mina</styleUrl>
+      <Point><coordinates>${centerLon},${centerLat},0</coordinates></Point>
+    </Placemark>`;
 
     allData.forEach((s: Sismo) => {
       // Use real coordinates if they exist, otherwise fallback to random mock locations
