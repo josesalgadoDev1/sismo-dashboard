@@ -267,10 +267,10 @@ export default function Home() {
     const allData = await fetchFullData();
     if (allData.length === 0) return;
 
-    const radiusKM = filters.maxDist ? parseFloat(filters.maxDist) : 30;
+    const radiusKM = filters.maxDist ? parseFloat(filters.maxDist) : null;
     const centerLat = -20.94152;
     const centerLon = -68.68253;
-    const rangeMeters = radiusKM * 1000 * 2.5; // Zoom automático según el radio
+    const rangeMeters = radiusKM ? radiusKM * 1000 * 2.5 : 50000; // Zoom a 50km si no hay filtro
 
     let kml = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -313,15 +313,16 @@ export default function Home() {
       </PolyStyle>
     </Style>`;
 
-    let circleCoords = "";
-    for (let i = 0; i <= 360; i += 5) {
-      const rad = i * Math.PI / 180;
-      const dLat = (radiusKM / 111.32) * Math.sin(rad);
-      const dLon = (radiusKM / (111.32 * Math.cos(centerLat * Math.PI / 180))) * Math.cos(rad);
-      circleCoords += `${centerLon + dLon},${centerLat + dLat},0 `;
-    }
+    if (radiusKM) {
+      let circleCoords = "";
+      for (let i = 0; i <= 360; i += 5) {
+        const rad = i * Math.PI / 180;
+        const dLat = (radiusKM / 111.32) * Math.sin(rad);
+        const dLon = (radiusKM / (111.32 * Math.cos(centerLat * Math.PI / 180))) * Math.cos(rad);
+        circleCoords += `${centerLon + dLon},${centerLat + dLat},0 `;
+      }
 
-    kml += `
+      kml += `
     <Placemark>
       <name>Radio Filtro (${radiusKM} km)</name>
       <description>Área de escaneo actual desde Mina Collahuasi</description>
@@ -336,7 +337,10 @@ export default function Home() {
           </LinearRing>
         </outerBoundaryIs>
       </Polygon>
-    </Placemark>
+    </Placemark>`;
+    }
+
+    kml += `
     <Placemark>
       <name>Mina Collahuasi</name>
       <styleUrl>#mina</styleUrl>
