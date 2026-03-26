@@ -437,11 +437,11 @@ export default function Home() {
         </div>
         <div className="filter-group">
           <label><Navigation size={14} style={{ marginRight: 4 }} /> Distancia Máx (km)</label>
-          <input 
-            type="number" 
-            placeholder="300" 
-            value={filters.maxDist} 
-            onChange={(e) => setFilters({...filters, maxDist: e.target.value})}
+          <input
+            type="number"
+            placeholder="300"
+            value={filters.maxDist}
+            onChange={(e) => setFilters({ ...filters, maxDist: e.target.value })}
           />
         </div>
         <div className="filter-group" style={{ flexDirection: 'row', alignItems: 'flex-end', gap: '0.5rem' }}>
@@ -484,24 +484,24 @@ export default function Home() {
                   {Number(s.magnitud).toFixed(1)}
                 </div>
                 <div>
-                  <div style={{fontWeight: 700, fontSize: '1.2rem', marginBottom: '0.4rem'}}>{s.ubicacion}</div>
-                  <div style={{display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap'}}>
-                    <span style={{ 
-                      fontSize: '0.75rem', 
-                      fontWeight: 700, 
-                      color: 'var(--accent)', 
-                      background: 'var(--btn-bg)', 
-                      padding: '2px 8px', 
+                  <div style={{ fontWeight: 700, fontSize: '1.2rem', marginBottom: '0.4rem' }}>{s.ubicacion}</div>
+                  <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <span style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      color: 'var(--accent)',
+                      background: 'var(--btn-bg)',
+                      padding: '2px 8px',
                       borderRadius: '6px',
                       border: '1px solid var(--card-border)'
                     }}>
                       {s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml Richter'}
                     </span>
-                    <span style={{fontSize: '0.85rem', color: 'var(--text-muted)'}}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                       {new Date(s.fecha_sismo).toLocaleString("es-CL")}
                     </span>
                     {s.latitud && s.longitud && (
-                      <span style={{fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         📍 {s.latitud}, {s.longitud}
                       </span>
                     )}
@@ -599,8 +599,7 @@ export default function Home() {
       </section>
 
       <footer style={{ marginTop: '4rem', textAlign: 'center', color: '#64748b', fontSize: '0.875rem' }}>
-        <div style={{ marginBottom: '0.5rem' }}>Sistema de Alerta Sísmica Collahuasi</div>
-        &copy; 2026 Powered by Dares Tech Industrial Solutions
+        &copy; 2026 Sistema de Alerta Sísmica Collahuasi
       </footer>
     </main>
   );
