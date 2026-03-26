@@ -495,7 +495,7 @@ export default function Home() {
                       borderRadius: '6px',
                       border: '1px solid var(--card-border)'
                     }}>
-                      {s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml Richter'}
+                      {s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'ML'}
                     </span>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                       {new Date(s.fecha_sismo).toLocaleString("es-CL")}
@@ -599,6 +599,7 @@ export default function Home() {
       </section>
 
       <footer style={{ marginTop: '4rem', textAlign: 'center', color: '#64748b', fontSize: '0.875rem' }}>
+        <div style={{ marginBottom: '0.5rem' }}>Sistema de Alerta Sísmica Collahuasi</div>
         &copy; 2026 Sistema de Alerta Sísmica Collahuasi
       </footer>
     </main>

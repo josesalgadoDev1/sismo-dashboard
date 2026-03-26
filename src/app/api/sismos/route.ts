@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { Pool } from "pg";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
