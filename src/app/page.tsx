@@ -269,9 +269,9 @@ export default function Home() {
     if (allData.length === 0) return;
 
     const radiusKM = filters.maxDist ? parseFloat(filters.maxDist) : null;
-    const centerLat = -20.94152;
-    const centerLon = -68.68253;
-    const rangeMeters = radiusKM ? radiusKM * 1000 * 2.5 : 50000; // Zoom a 50km si no hay filtro
+    const centerLat = -20.940803;
+    const centerLon = -68.603681;
+    const rangeMeters = radiusKM ? radiusKM * 1000 * 2.5 : 50000;
 
     let kml = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -349,7 +349,6 @@ export default function Home() {
     </Placemark>`;
 
     allData.forEach((s: Sismo) => {
-      // Use real coordinates if they exist, otherwise fallback to random mock locations
       const lat = s.latitud ? parseFloat(s.latitud) : -20.98 + (Math.random() - 0.5) * 0.5;
       const lon = s.longitud ? parseFloat(s.longitud) : -68.66 + (Math.random() - 0.5) * 0.5;
 
@@ -420,11 +419,17 @@ export default function Home() {
             </button>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-          <Activity size={32} color="#3b82f6" />
-          <h1>Monitoreo Sísmico Collahuasi</h1>
+        <div className="header-brand">
+          <img
+            src="/cmdic_logo.png"
+            alt="Logo Collahuasi"
+            className="header-logo"
+          />
+          <div className="header-titles">
+            <h1>Monitoreo Sísmico Collahuasi</h1>
+            <p className="subtitle">Sistema de Monitoreo Sísmico de Alta Precisión</p>
+          </div>
         </div>
-        <p className="subtitle">Sistema de Monitoreo Sísmico de Alta Precisión</p>
       </header>
 
       <div className="demo-banner">

@@ -51,20 +51,53 @@ body {
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 800;
-  margin-bottom: 2rem;
+  margin-bottom: 0.25rem;
   background: linear-gradient(to right, #60a5fa, #3b82f6);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-align: center;
+  text-align: left;
+  line-height: 1.2;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 0.5rem 0;
+}
+
+.header-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-logo {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.12));
+  transition: transform 0.3s ease, filter 0.3s ease;
+  flex-shrink: 0;
+}
+
+body.dark-mode .header-logo {
+  filter: brightness(0) invert(1) drop-shadow(0 2px 10px rgba(255, 255, 255, 0.1));
+}
+
+.header-logo:hover {
+  transform: scale(1.05);
 }
 
 .subtitle {
-  text-align: center;
   color: var(--text-muted);
-  margin-bottom: 2rem;
+  font-size: 0.9rem;
+  margin-bottom: 0;
+  text-align: left;
+  letter-spacing: 0.01em;
 }
 
 .glass-card {
@@ -206,7 +239,25 @@ h1 {
   }
   
   h1 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
+    text-align: center;
+  }
+
+  .header-brand {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .header-titles {
+    align-items: center;
+  }
+
+  .subtitle {
+    text-align: center;
+  }
+
+  .header-logo {
+    height: 60px;
   }
 
   .filters-section {
