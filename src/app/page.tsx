@@ -18,7 +18,8 @@ import {
   ChevronsRight,
   RotateCcw,
   Sun,
-  Moon
+  Moon,
+  AlertTriangle
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -425,6 +426,17 @@ export default function Home() {
         </div>
         <p className="subtitle">Sistema de Monitoreo Sísmico de Alta Precisión</p>
       </header>
+
+      <div className="demo-banner">
+        <div className="demo-banner-icon">
+          <AlertTriangle size={20} />
+        </div>
+        <div className="demo-banner-content">
+          <span className="demo-banner-title">Entorno de Demostración</span>
+          <span className="demo-banner-text">Los datos visualizados son de prueba y no representan actividad sísmica real.</span>
+        </div>
+        <span className="demo-banner-badge">DEMO</span>
+      </div>
 
       <section className="glass-card filters-section">
         <div className="filter-group">
