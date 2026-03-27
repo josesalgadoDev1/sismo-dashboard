@@ -432,7 +432,7 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="demo-banner">
+      {/* <div className="demo-banner">
         <div className="demo-banner-icon">
           <AlertTriangle size={20} />
         </div>
@@ -441,7 +441,7 @@ export default function Home() {
           <span className="demo-banner-text">Los datos visualizados son de prueba y no representan actividad sísmica real.</span>
         </div>
         <span className="demo-banner-badge">DEMO</span>
-      </div>
+      </div> */}
 
       <section className="glass-card filters-section">
         <div className="filter-group">
