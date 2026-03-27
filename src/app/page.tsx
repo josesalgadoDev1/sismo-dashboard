@@ -620,7 +620,7 @@ export default function Home() {
       </section>
 
       <footer style={{ marginTop: '4rem', textAlign: 'center', color: '#64748b', fontSize: '0.875rem' }}>
-        <div style={{ marginBottom: '0.5rem' }}>Sistema de Alerta Sísmica Collahuasi</div>
+        {/* <div style={{ marginBottom: '0.5rem' }}>Sistema de Alerta Sísmica Collahuasi</div> */}
         &copy; 2026 Sistema de Alerta Sísmica Collahuasi
       </footer>
     </main>
