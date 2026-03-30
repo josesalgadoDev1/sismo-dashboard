@@ -18,6 +18,7 @@ export async function GET(request: Request) {
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
   const maxDist = searchParams.get("maxDist");
+  const estado = searchParams.get("estado");
   const limit = parseInt(searchParams.get("limit") || "10", 10);
   const offset = parseInt(searchParams.get("offset") || "0", 10);
 
@@ -54,6 +55,10 @@ export async function GET(request: Request) {
   if (maxDist) {
     whereClause += ` AND distancia_km <= $${paramIndex++}`;
     params.push(parseInt(maxDist, 10));
+  }
+  if (estado) {
+    whereClause += ` AND nivel_alerta = $${paramIndex++}`;
+    params.push(estado);
   }
 
   try {

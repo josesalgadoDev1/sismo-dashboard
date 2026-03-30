@@ -17,8 +17,6 @@ import {
   ChevronsLeft,
   ChevronsRight,
   RotateCcw,
-  Sun,
-  Moon,
   AlertTriangle
 } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -46,28 +44,7 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<"dark" | "light">("light");
   const limit = 10;
-
-  useEffect(() => {
-    // Restaurar tema si está guardado en localStorage
-    const savedTheme = localStorage.getItem("sismo-theme");
-    if (savedTheme === "dark") {
-      setTheme("dark");
-      document.body.classList.add("dark-mode");
-    } else if (savedTheme === "light") {
-      setTheme("light");
-      document.body.classList.remove("dark-mode");
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    localStorage.setItem("sismo-theme", newTheme);
-    if (newTheme === "dark") document.body.classList.add("dark-mode");
-    else document.body.classList.remove("dark-mode");
-  };
 
   const [filters, setFilters] = useState({
     minMag: "",
@@ -406,19 +383,7 @@ export default function Home() {
 
   return (
     <main className="container animate-fade-in">
-      <header style={{ position: 'relative', marginBottom: '1rem' }}>
-        <div style={{ position: 'absolute', right: 0, top: 0 }}>
-          {mounted && (
-            <button
-              className="btn-icon"
-              onClick={toggleTheme}
-              title={theme === "dark" ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
-              style={{ borderRadius: '50%' }}
-            >
-              {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-          )}
-        </div>
+      <header style={{ marginBottom: '1rem' }}>
         <div className="header-brand">
           <img
             src="/cmdic_logo.png"
