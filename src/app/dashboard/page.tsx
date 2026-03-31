@@ -163,11 +163,18 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // On filter change — reset to page 1 and refetch everything
+  // On filter change — debounce 300ms so sliders feel fluid
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!mounted) return;
-    setPage(1);
-    fetchAllData(1);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setPage(1);
+      fetchAllData(1);
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 

@@ -72,13 +72,14 @@ export async function GET(request: Request) {
     const escalaRes = await pool.query(escalaQuery, params);
     const escalaMax = escalaRes.rows[0]?.escala || 'ML';
 
-    // Get full details of the last registered event
+    // Get full details of the last registered event (always absolute, ignores filters)
     const lastEventQuery = `
       SELECT id, fecha_sismo, magnitud, profundidad, ubicacion, distancia_km, nivel_alerta, escala, latitud, longitud
-      FROM alertas_sismicas ${whereClause}
+      FROM alertas_sismicas
+      WHERE 1=1 ${!SHOW_MOCK_DATA ? "AND sismo_hash NOT LIKE 'MOCK-%'" : ""}
       ORDER BY fecha_sismo DESC LIMIT 1
     `;
-    const lastEventRes = await pool.query(lastEventQuery, params);
+    const lastEventRes = await pool.query(lastEventQuery);
     const lastEvent = lastEventRes.rows[0] || null;
 
     // Alert level counts
