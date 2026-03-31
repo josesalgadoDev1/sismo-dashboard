@@ -72,6 +72,15 @@ export async function GET(request: Request) {
     const escalaRes = await pool.query(escalaQuery, params);
     const escalaMax = escalaRes.rows[0]?.escala || 'ML';
 
+    // Get full details of the last registered event
+    const lastEventQuery = `
+      SELECT id, fecha_sismo, magnitud, profundidad, ubicacion, distancia_km, nivel_alerta, escala, latitud, longitud
+      FROM alertas_sismicas ${whereClause}
+      ORDER BY fecha_sismo DESC LIMIT 1
+    `;
+    const lastEventRes = await pool.query(lastEventQuery, params);
+    const lastEvent = lastEventRes.rows[0] || null;
+
     // Alert level counts
     const alertQuery = `
       SELECT 
@@ -118,6 +127,7 @@ export async function GET(request: Request) {
         ultimoEvento: kpi.ultimo_evento || null,
         escalaMax: escalaMax
       },
+      lastEvent,
       alertCounts,
       trend: trendRes.rows.reverse() // Oldest first for chart
     });

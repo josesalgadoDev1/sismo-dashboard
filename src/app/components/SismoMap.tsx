@@ -19,6 +19,7 @@ interface Sismo {
 
 interface SismoMapProps {
   sismos: Sismo[];
+  radiusKm?: number | null;
 }
 
 const COLLAHUASI_CENTER: [number, number] = [-20.940803, -68.603681];
@@ -41,10 +42,11 @@ function getMagRadius(mag: number): number {
   return 6;
 }
 
-export default function SismoMap({ sismos }: SismoMapProps) {
+export default function SismoMap({ sismos, radiusKm }: SismoMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
+  const radiusLayerRef = useRef<L.Circle | null>(null);
 
   // Initialize Map
   useEffect(() => {
@@ -55,6 +57,7 @@ export default function SismoMap({ sismos }: SismoMapProps) {
       zoom: 8,
       zoomControl: true,
       attributionControl: true,
+      preferCanvas: true,
     });
 
     // Use Esri satellite tiles
@@ -63,6 +66,7 @@ export default function SismoMap({ sismos }: SismoMapProps) {
       {
         attribution: "Tiles &copy; Esri",
         maxZoom: 18,
+        crossOrigin: "anonymous",
       }
     ).addTo(map);
 
@@ -71,23 +75,22 @@ export default function SismoMap({ sismos }: SismoMapProps) {
       {
         maxZoom: 18,
         opacity: 0.7,
+        crossOrigin: "anonymous",
       }
     ).addTo(map);
 
     // Mine marker
     const mineIcon = L.divIcon({
       html: `<div style="
-        width: 32px; height: 32px; 
-        background: rgba(59,130,246,0.9); 
-        border: 3px solid white; 
-        border-radius: 50%; 
-        display: flex; align-items: center; justify-content: center;
+        width: 28px; height: 28px;
+        background: rgba(59,130,246,0.9);
+        border: 3px solid white;
+        border-radius: 50%;
         box-shadow: 0 0 20px rgba(59,130,246,0.5);
-        font-size: 14px;
-      ">⛏️</div>`,
+      "></div>`,
       className: "",
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
     });
 
     L.marker(COLLAHUASI_CENTER, { icon: mineIcon })
@@ -109,6 +112,33 @@ export default function SismoMap({ sismos }: SismoMapProps) {
       }
     };
   }, []);
+
+  // Update Radius Circle
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    // Remove previous radius
+    if (radiusLayerRef.current) {
+      map.removeLayer(radiusLayerRef.current);
+      radiusLayerRef.current = null;
+    }
+
+    if (radiusKm && radiusKm > 0 && radiusKm < 500) {
+      const circle = L.circle(COLLAHUASI_CENTER, {
+        radius: radiusKm * 1000,
+        color: "#ef4444",
+        weight: 3,
+        opacity: 0.9,
+        fillColor: "#ef4444",
+        fillOpacity: 0.15,
+        dashArray: "10, 8",
+      });
+      circle.bindPopup(`<div class="map-popup"><h4>Radio de Filtro</h4><p><strong>${radiusKm} km</strong> desde Mina Collahuasi</p></div>`);
+      circle.addTo(map);
+      radiusLayerRef.current = circle;
+    }
+  }, [radiusKm]);
 
   // Update Markers
   useEffect(() => {
@@ -149,6 +179,11 @@ export default function SismoMap({ sismos }: SismoMapProps) {
       
       marker.addTo(layer);
     });
+
+    // Bring radius circle to front if it exists
+    if (radiusLayerRef.current) {
+      radiusLayerRef.current.bringToFront();
+    }
 
     // Handle bounds
     const validSismos = sismos.filter(s => s.latitud && s.longitud);

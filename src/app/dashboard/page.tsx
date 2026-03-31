@@ -19,14 +19,17 @@ import {
   RotateCcw,
   Clock,
   Crosshair,
-  Mountain,
+  MapPin,
   BarChart3,
   Info,
+  Download,
+  Camera,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import JSZip from "jszip";
+import html2canvas from "html2canvas";
 
 // Loading placeholder (must be defined before dynamic imports)
 function LoadingBox() {
@@ -62,6 +65,19 @@ interface Sismo {
   escala: string;
 }
 
+interface LastEvent {
+  id: number;
+  fecha_sismo: string;
+  magnitud: number;
+  profundidad: number;
+  ubicacion: string;
+  distancia_km: number;
+  nivel_alerta: string;
+  escala: string;
+  latitud: string;
+  longitud: string;
+}
+
 interface StatsData {
   kpi: {
     total: number;
@@ -71,6 +87,7 @@ interface StatsData {
     ultimoEvento: string | null;
     escalaMax: string;
   };
+  lastEvent: LastEvent | null;
   alertCounts: Record<string, number>;
   trend: Array<{ fecha: string; cantidad: number; max_magnitud: number }>;
 }
@@ -91,6 +108,7 @@ export default function DashboardPage() {
     startDate: "",
     endDate: "",
     estado: "",
+    periodo: "",
   });
 
   const fetchIdRef = useRef(0);
@@ -174,7 +192,7 @@ export default function DashboardPage() {
   };
 
   const resetFilters = () => {
-    setFilters({ minMag: "", maxDist: "", startDate: "", endDate: "", estado: "" });
+    setFilters({ minMag: "", maxDist: "", startDate: "", endDate: "", estado: "", periodo: "" });
   };
 
   const fetchFullData = async () => {
@@ -214,6 +232,82 @@ export default function DashboardPage() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sismos");
     XLSX.writeFile(wb, "Reporte_Sismos_Collahuasi.xlsx");
+  };
+
+  const exportCSV = async () => {
+    const allData = await fetchFullData();
+    if (allData.length === 0) return;
+
+    const dataToExport = allData.map((s: Sismo) => ({
+      "Fecha": new Date(s.fecha_sismo).toLocaleString("es-CL"),
+      "Magnitud": `${Number(s.magnitud).toFixed(1)} ${s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml (Richter)'}`,
+      "Nivel": s.nivel_alerta,
+      "Ubicacion": s.ubicacion,
+      "Latitud": s.latitud || "-",
+      "Longitud": s.longitud || "-"
+    }));
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const csv = XLSX.utils.sheet_to_csv(ws);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Reporte_Sismos.csv");
+    link.click();
+  };
+
+  const exportPDF = async () => {
+    const allData = await fetchFullData();
+    if (allData.length === 0) return;
+
+    const doc = new jsPDF() as any;
+    const primaryColor: [number, number, number] = [59, 130, 246];
+
+    doc.setFontSize(18);
+    doc.setTextColor(40, 40, 40);
+    doc.text("REPORTE DE MONITOREO SÍSMICO", 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Área de Influencia: Mina Doña Inés de Collahuasi", 14, 28);
+    doc.text(`Generado el: ${new Date().toLocaleString("es-CL")}`, 14, 34);
+
+    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setLineWidth(1);
+    doc.line(14, 38, 196, 38);
+
+    const tableData = allData.map((s: Sismo) => [
+      new Date(s.fecha_sismo).toLocaleString("es-CL"),
+      `${Number(s.magnitud).toFixed(1)} ${s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml(Richter)'}`,
+      `${s.profundidad} km`,
+      `${s.latitud || '-'}, ${s.longitud || '-'}`,
+      `${s.distancia_km} km`,
+      s.nivel_alerta
+    ]);
+
+    autoTable(doc, {
+      head: [['Fecha', 'Mag', 'Prof', 'Coordenadas', 'Dist', 'Nivel']],
+      body: tableData,
+      startY: 45,
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: {
+        fillColor: primaryColor,
+        textColor: [255, 255, 255] as [number, number, number],
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: { fillColor: [245, 247, 250] as [number, number, number] },
+      columnStyles: { 5: { fontStyle: 'bold' } },
+      didDrawCell: (data: any) => {
+        if (data.section === 'body' && data.column.index === 5) {
+          const level = data.cell.raw;
+          if (level === 'ALARMA') doc.setTextColor(255, 0, 0);
+          else if (level === 'ALERTA') doc.setTextColor(255, 140, 0);
+          else if (level === 'ADVERTENCIA') doc.setTextColor(255, 215, 0);
+          else doc.setTextColor(76, 175, 80);
+        }
+      }
+    });
+
+    doc.save(`Reporte_Sismos_Collahuasi_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   const exportKMZ = async () => {
@@ -331,6 +425,84 @@ export default function DashboardPage() {
 
   const totalPages = Math.ceil(total / limit);
   const statsTrend = useMemo(() => stats?.trend || [], [stats]);
+  const trendRef = useRef<HTMLDivElement>(null);
+
+  const exportChartImage = async () => {
+    const container = trendRef.current;
+    if (!container) return;
+    const canvas = await html2canvas(container, {
+      backgroundColor: "#1e293b",
+      scale: 2,
+    });
+    const link = document.createElement("a");
+    link.download = `Tendencia_Sismica_${new Date().toISOString().split("T")[0]}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
+
+  const dashboardRef = useRef<HTMLDivElement>(null);
+
+  const exportDashboardImage = async () => {
+    const container = dashboardRef.current;
+    if (!container) return;
+    try {
+      // Temporarily neutralise Leaflet 3-D transforms so html2canvas renders
+      // tiles in the correct position (it cannot parse translate3d reliably).
+      const mapEl = container.querySelector(".leaflet-container") as HTMLElement | null;
+      const tilePane = mapEl?.querySelector(".leaflet-tile-pane") as HTMLElement | null;
+      const markerPane = mapEl?.querySelector(".leaflet-marker-pane") as HTMLElement | null;
+      const savedStyles: { el: HTMLElement; val: string }[] = [];
+
+      if (tilePane) {
+        // Flatten every tile's translate3d → top/left
+        tilePane.querySelectorAll<HTMLElement>(".leaflet-tile").forEach((tile) => {
+          const m = tile.style.transform.match(
+            /translate3d\(\s*(-?[\d.]+)px,\s*(-?[\d.]+)px/
+          );
+          if (m) {
+            savedStyles.push({ el: tile, val: tile.style.cssText });
+            tile.style.transform = "none";
+            tile.style.left = `${parseFloat(m[1]) + (parseFloat(tile.style.left) || 0)}px`;
+            tile.style.top = `${parseFloat(m[2]) + (parseFloat(tile.style.top) || 0)}px`;
+          }
+        });
+      }
+
+      // Also flatten the map pane container transform
+      const mapPane = mapEl?.querySelector(".leaflet-map-pane") as HTMLElement | null;
+      if (mapPane) {
+        const m = mapPane.style.transform.match(
+          /translate3d\(\s*(-?[\d.]+)px,\s*(-?[\d.]+)px/
+        );
+        if (m) {
+          savedStyles.push({ el: mapPane, val: mapPane.style.cssText });
+          mapPane.style.transform = "none";
+          mapPane.style.left = `${m[1]}px`;
+          mapPane.style.top = `${m[2]}px`;
+        }
+      }
+
+      const canvas = await html2canvas(container, {
+        backgroundColor: "#0f172a",
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+      });
+
+      // Restore original Leaflet styles
+      savedStyles.forEach(({ el, val }) => {
+        el.style.cssText = val;
+      });
+
+      const link = document.createElement("a");
+      link.download = `Dashboard_Sismico_${new Date().toISOString().split("T")[0]}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (err) {
+      console.error("Screenshot error:", err);
+    }
+  };
 
   const formatDate = (dateStr: string) => {
     try {
@@ -340,14 +512,24 @@ export default function DashboardPage() {
     } catch { return dateStr; }
   };
 
+  const formatDateShort = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      const date = d.toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric" });
+      const time = d.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
+      return `${date} — ${time}`;
+    } catch { return dateStr; }
+  };
+
   return (
-    <div className="dashboard">
+    <div className="dashboard" ref={dashboardRef}>
       <div className="dashboard-content">
         <section className="kpi-strip">
-          <KPICard icon={<Clock size={20} />} label="Último Evento" value={stats?.kpi.ultimoEvento ? formatDate(stats.kpi.ultimoEvento) : "—"} color="blue" />
-          <KPICard icon={<Zap size={20} />} label="Magnitud Máxima" value={stats?.kpi.maxMagnitud !== undefined ? Number(stats.kpi.maxMagnitud).toFixed(1) : "—"} unit={stats?.kpi.escalaMax || "ML"} color="red" />
-          <KPICard icon={<Crosshair size={20} />} label="Distancia Mínima" value={stats?.kpi.minDistancia !== undefined ? Number(stats.kpi.minDistancia).toFixed(0) : "—"} unit="km" color="green" />
-          <KPICard icon={<Mountain size={20} />} label="Profundidad Máxima" value={stats?.kpi.maxProfundidad !== undefined ? Number(stats.kpi.maxProfundidad).toFixed(0) : "—"} unit="km" color="orange" />
+          <div className="kpi-strip-title"><Info size={14} /> Último Sismo Registrado</div>
+          <KPICard icon={<Clock size={20} />} label="Fecha y Hora" value={stats?.lastEvent ? formatDateShort(stats.lastEvent.fecha_sismo) : "—"} color="blue" small />
+          <KPICard icon={<Zap size={20} />} label="Magnitud" value={stats?.lastEvent ? Number(stats.lastEvent.magnitud).toFixed(1) : "—"} unit={stats?.lastEvent?.escala?.toUpperCase() || "ML"} color="red" />
+          <KPICard icon={<MapPin size={20} />} label="Ubicación" value={stats?.lastEvent?.ubicacion || "—"} color="green" small />
+          <KPICard icon={<Crosshair size={20} />} label="Profundidad" value={stats?.lastEvent ? Number(stats.lastEvent.profundidad).toFixed(0) : "—"} unit="km" color="orange" />
         </section>
 
         <section className="alert-strip">
@@ -372,19 +554,50 @@ export default function DashboardPage() {
               </select>
             </div>
             <div className="filter-group">
+              <label><Clock size={14} style={{ marginRight: 4 }} /> Período</label>
+              <select value={filters.periodo} onChange={(e) => {
+                const val = e.target.value;
+                if (val === "") {
+                  setFilters({ ...filters, periodo: "", startDate: "", endDate: "" });
+                } else {
+                  const days = parseInt(val);
+                  const end = new Date();
+                  const start = new Date();
+                  start.setDate(end.getDate() - days);
+                  setFilters({
+                    ...filters,
+                    periodo: val,
+                    startDate: start.toISOString().split("T")[0],
+                    endDate: end.toISOString().split("T")[0],
+                  });
+                }
+              }}>
+                <option value="">Todo el período</option>
+                <option value="7">Últimos 7 días</option>
+                <option value="15">Últimos 15 días</option>
+                <option value="30">Últimos 30 días</option>
+              </select>
+            </div>
+            <div className="filter-group">
               <label><Calendar size={14} style={{ marginRight: 4 }} /> Fecha Inicio</label>
-              <input type="date" value={filters.startDate} onChange={(e) => setFilters({ ...filters, startDate: e.target.value })} />
+              <input type="date" value={filters.startDate} onChange={(e) => setFilters({ ...filters, startDate: e.target.value, periodo: "" })} />
             </div>
             <div className="filter-group">
               <label><Calendar size={14} style={{ marginRight: 4 }} /> Fecha Fin</label>
-              <input type="date" value={filters.endDate} onChange={(e) => setFilters({ ...filters, endDate: e.target.value })} />
+              <input type="date" value={filters.endDate} onChange={(e) => setFilters({ ...filters, endDate: e.target.value, periodo: "" })} />
             </div>
             <FilterSlider label="Magnitud Mínima" value={filters.minMag || "0"} min="0" max="9" step="0.5" onChange={(v: string) => setFilters({...filters, minMag: v === "0" ? "" : v})} />
             <FilterSlider label="Distancia Máx." value={filters.maxDist || "500"} min="0" max="500" step="10" onChange={(v: string) => setFilters({...filters, maxDist: v === "500" ? "" : v})} />
           </div>
 
+          <button className="btn-screenshot" onClick={exportDashboardImage}><Camera size={14} /> Captura Dashboard</button>
+
           <div className="export-section" style={{ marginTop: "0.5rem" }}>
             <button className="btn-export" onClick={exportExcel} disabled={total === 0}><TableIcon size={14} /> EXCEL</button>
+            <button className="btn-export" onClick={exportCSV} disabled={total === 0}><FileText size={14} /> CSV</button>
+          </div>
+          <div className="export-section">
+            <button className="btn-export" onClick={exportPDF} disabled={total === 0}><FileText size={14} /> PDF</button>
             <button className="btn-export" onClick={exportKMZ} disabled={total === 0}><Globe size={14} /> KMZ</button>
           </div>
 
@@ -406,13 +619,18 @@ export default function DashboardPage() {
           <section className="map-panel">
             <div className="map-header"><h2><Globe size={16} /> Georeferenciación</h2></div>
             <div className="map-container">
-              <SismoMap sismos={allSismosForMap} />
+              <SismoMap sismos={allSismosForMap} radiusKm={filters.maxDist ? parseFloat(filters.maxDist) : null} />
             </div>
           </section>
 
           <section className="trend-panel">
-            <div className="trend-header"><h2><BarChart3 size={16} /> Tendencia Temporal</h2></div>
-            <div className="trend-chart">
+            <div className="trend-header">
+              <h2><BarChart3 size={16} /> Tendencia Temporal</h2>
+              <button className="btn-nav" onClick={exportChartImage} title="Descargar gráfico como imagen">
+                <Download size={14} />
+              </button>
+            </div>
+            <div className="trend-chart" ref={trendRef}>
               {statsTrend.length > 0 ? <TrendChart data={statsTrend} /> : <LoadingBox />}
             </div>
           </section>
@@ -423,13 +641,13 @@ export default function DashboardPage() {
 }
 
 // Subcomponents for cleaner render
-function KPICard({ icon, label, value, unit, color }: any) {
+function KPICard({ icon, label, value, unit, color, small }: any) {
   return (
     <div className="kpi-card">
       <div className={`kpi-icon ${color}`}>{icon}</div>
       <div className="kpi-info">
         <span className="kpi-label">{label}</span>
-        <span className="kpi-value">{value} <span className="kpi-unit">{unit}</span></span>
+        <span className={`kpi-value${small ? " kpi-value-small" : ""}`}>{value} {unit && <span className="kpi-unit">{unit}</span>}</span>
       </div>
     </div>
   );

@@ -47,7 +47,7 @@ export default function Navbar() {
           />
           <div className="navbar-brand-text">
             <span className="navbar-title">Monitoreo Sísmico</span>
-            <span className="navbar-subtitle">Collahuasi</span>
+            <span className="navbar-subtitle">Paltaforma Tim</span>
           </div>
         </Link>
 
