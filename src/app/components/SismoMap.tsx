@@ -172,7 +172,7 @@ export default function SismoMap({ sismos, radiusKm }: SismoMapProps) {
         <div class="map-popup">
           <h4>M ${Number(s.magnitud).toFixed(1)} — ${s.nivel_alerta}</h4>
           <p><strong>Ubicación:</strong> ${s.ubicacion}</p>
-          <p><strong>Fecha:</strong> ${new Date(s.fecha_sismo).toLocaleString("es-CL")}</p>
+          <p><strong>Fecha:</strong> ${new Date(s.fecha_sismo).toLocaleString("es-CL", { timeZone: "America/Santiago" })}</p>
           <p><strong>Profundidad:</strong> ${s.profundidad} km</p>
         </div>
       `);

@@ -220,7 +220,7 @@ export default function DashboardPage() {
     if (allData.length === 0) return;
 
     const dataToExport = allData.map((s: Sismo) => ({
-      "Fecha Sismo": new Date(s.fecha_sismo).toLocaleString("es-CL"),
+      "Fecha Sismo": new Date(s.fecha_sismo).toLocaleString("es-CL", { timeZone: "America/Santiago" }),
       "Magnitud": `${Number(s.magnitud).toFixed(1)} ${s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml(Richter)'}`,
       "Profundidad (km)": s.profundidad,
       "Ubicación": s.ubicacion,
@@ -228,7 +228,7 @@ export default function DashboardPage() {
       "Longitud": s.longitud || "-",
       "Distancia a Collahuasi (km)": s.distancia_km,
       "Nivel de Alerta": s.nivel_alerta,
-      "Fecha Notificación": new Date(s.fecha_notificacion).toLocaleString("es-CL")
+      "Fecha Notificación": new Date(s.fecha_notificacion).toLocaleString("es-CL", { timeZone: "America/Santiago" })
     }));
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
@@ -246,7 +246,7 @@ export default function DashboardPage() {
     if (allData.length === 0) return;
 
     const dataToExport = allData.map((s: Sismo) => ({
-      "Fecha": new Date(s.fecha_sismo).toLocaleString("es-CL"),
+      "Fecha": new Date(s.fecha_sismo).toLocaleString("es-CL", { timeZone: "America/Santiago" }),
       "Magnitud": `${Number(s.magnitud).toFixed(1)} ${s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml (Richter)'}`,
       "Nivel": s.nivel_alerta,
       "Ubicacion": s.ubicacion,
@@ -276,14 +276,14 @@ export default function DashboardPage() {
     doc.setFontSize(11);
     doc.setTextColor(100, 100, 100);
     doc.text("Área de Influencia: Mina Doña Inés de Collahuasi", 14, 28);
-    doc.text(`Generado el: ${new Date().toLocaleString("es-CL")}`, 14, 34);
+    doc.text(`Generado el: ${new Date().toLocaleString("es-CL", { timeZone: "America/Santiago" })}`, 14, 34);
 
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setLineWidth(1);
     doc.line(14, 38, 196, 38);
 
     const tableData = allData.map((s: Sismo) => [
-      new Date(s.fecha_sismo).toLocaleString("es-CL"),
+      new Date(s.fecha_sismo).toLocaleString("es-CL", { timeZone: "America/Santiago" }),
       `${Number(s.magnitud).toFixed(1)} ${s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml(Richter)'}`,
       `${s.profundidad} km`,
       `${s.latitud || '-'}, ${s.longitud || '-'}`,
@@ -403,7 +403,7 @@ export default function DashboardPage() {
       <description><![CDATA[
         <div style="font-family: Arial; padding: 10px;">
           <h3 style="color: #3b82f6;">Sismo Detectado</h3>
-          <p><b>Fecha:</b> ${new Date(s.fecha_sismo).toLocaleString("es-CL")}</p>
+          <p><b>Fecha:</b> ${new Date(s.fecha_sismo).toLocaleString("es-CL", { timeZone: "America/Santiago" })}</p>
           <p><b>Ubicación:</b> ${s.ubicacion}</p>
           <p><b>Magnitud:</b> ${s.magnitud}</p>
           <p><b>Distancia:</b> ${s.distancia_km} km</p>
@@ -514,6 +514,7 @@ export default function DashboardPage() {
   const formatDate = (dateStr: string) => {
     try {
       return new Date(dateStr).toLocaleString("es-CL", {
+        timeZone: "America/Santiago",
         day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
       });
     } catch { return dateStr; }
@@ -522,8 +523,8 @@ export default function DashboardPage() {
   const formatDateShort = (dateStr: string) => {
     try {
       const d = new Date(dateStr);
-      const date = d.toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric" });
-      const time = d.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
+      const date = d.toLocaleDateString("es-CL", { timeZone: "America/Santiago", day: "2-digit", month: "2-digit", year: "numeric" });
+      const time = d.toLocaleTimeString("es-CL", { timeZone: "America/Santiago", hour: "2-digit", minute: "2-digit" });
       return `${date} — ${time}`;
     } catch { return dateStr; }
   };

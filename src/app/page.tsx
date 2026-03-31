@@ -134,7 +134,7 @@ export default function Home() {
 
     // Preparar datos con cabeceras bonitas
     const dataToExport = allData.map((s: Sismo) => ({
-      "Fecha Sismo": new Date(s.fecha_sismo).toLocaleString("es-CL"),
+      "Fecha Sismo": new Date(s.fecha_sismo).toLocaleString("es-CL", { timeZone: "America/Santiago" }),
       "Magnitud": `${Number(s.magnitud).toFixed(1)} ${s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml(Richter)'}`,
       "Profundidad (km)": s.profundidad,
       "Ubicación": s.ubicacion,
@@ -142,7 +142,7 @@ export default function Home() {
       "Longitud": s.longitud || "-",
       "Distancia a Collahuasi (km)": s.distancia_km,
       "Nivel de Alerta": s.nivel_alerta,
-      "Fecha Notificación": new Date(s.fecha_notificacion).toLocaleString("es-CL")
+      "Fecha Notificación": new Date(s.fecha_notificacion).toLocaleString("es-CL", { timeZone: "America/Santiago" })
     }));
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
@@ -163,7 +163,7 @@ export default function Home() {
     if (allData.length === 0) return;
 
     const dataToExport = allData.map((s: Sismo) => ({
-      "Fecha": new Date(s.fecha_sismo).toLocaleString("es-CL"),
+      "Fecha": new Date(s.fecha_sismo).toLocaleString("es-CL", { timeZone: "America/Santiago" }),
       "Magnitud": `${Number(s.magnitud).toFixed(1)} ${s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml (Richter)'}`,
       "Nivel": s.nivel_alerta,
       "Ubicacion": s.ubicacion,
@@ -196,7 +196,7 @@ export default function Home() {
     doc.setFontSize(11);
     doc.setTextColor(100, 100, 100);
     doc.text("Área de Influencia: Mina Doña Inés de Collahuasi", 14, 28);
-    doc.text(`Generado el: ${new Date().toLocaleString("es-CL")}`, 14, 34);
+    doc.text(`Generado el: ${new Date().toLocaleString("es-CL", { timeZone: "America/Santiago" })}`, 14, 34);
 
     // Línea decorativa
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
@@ -204,7 +204,7 @@ export default function Home() {
     doc.line(14, 38, 196, 38);
 
     const tableData = allData.map((s: Sismo) => [
-      new Date(s.fecha_sismo).toLocaleString("es-CL"),
+      new Date(s.fecha_sismo).toLocaleString("es-CL", { timeZone: "America/Santiago" }),
       `${Number(s.magnitud).toFixed(1)} ${s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'Ml(Richter)'}`,
       `${s.profundidad} km`,
       `${s.latitud || '-'}, ${s.longitud || '-'}`,
@@ -340,7 +340,7 @@ export default function Home() {
       <description><![CDATA[
         <div style="font-family: Arial; padding: 10px;">
           <h3 style="color: #3b82f6;">Sismo Detectado</h3>
-          <p><b>Fecha:</b> ${new Date(s.fecha_sismo).toLocaleString("es-CL")}</p>
+          <p><b>Fecha:</b> ${new Date(s.fecha_sismo).toLocaleString("es-CL", { timeZone: "America/Santiago" })}</p>
           <p><b>Ubicación:</b> ${s.ubicacion}</p>
           <p><b>Magnitud:</b> ${s.magnitud}</p>
           <p><b>Distancia:</b> ${s.distancia_km} km</p>
@@ -484,7 +484,7 @@ export default function Home() {
                       {s.escala?.toUpperCase() === 'MW' ? 'Mw' : 'ML'}
                     </span>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                      {new Date(s.fecha_sismo).toLocaleString("es-CL")}
+                      {new Date(s.fecha_sismo).toLocaleString("es-CL", { timeZone: "America/Santiago" })}
                     </span>
                     {s.latitud && s.longitud && (
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
