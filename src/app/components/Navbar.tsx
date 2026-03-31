@@ -46,7 +46,7 @@ export default function Navbar() {
             className="navbar-logo"
           />
           <div className="navbar-brand-text">
-            <span className="navbar-title">Monitoreo Sísmico</span>
+            <span className="navbar-title">Monitoreo Sismos</span>
             <span className="navbar-subtitle">Paltaforma Tim</span>
           </div>
         </Link>
