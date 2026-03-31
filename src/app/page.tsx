@@ -392,7 +392,7 @@ export default function Home() {
           />
           <div className="header-titles">
             <h1>Monitoreo Sísmico Collahuasi</h1>
-            <p className="subtitle">Sistema de Monitoreo Sísmico de Alta Precisión</p>
+            <p className="subtitle">Plataforma Tim</p>
           </div>
         </div>
       </header>
