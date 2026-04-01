@@ -12,15 +12,13 @@ const pool = new Pool({
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const since = searchParams.get("since");
+  const minutes = searchParams.get("minutes");
 
   try {
     let query: string;
     let params: any[] = [];
 
-    if (since) {
-      // Devuelve sismos nuevos desde la fecha indicada
-      query = `
-        SELECT
+    const selectFields = `
           id,
           TO_CHAR(fecha_sismo, 'YYYY-MM-DD"T"HH24:MI:SS') as fecha_sismo,
           magnitud,
@@ -32,7 +30,21 @@ export async function GET(request: Request) {
           distancia_km,
           nivel_alerta,
           TO_CHAR(fecha_notificacion AT TIME ZONE 'UTC' AT TIME ZONE 'America/Santiago', 'YYYY-MM-DD"T"HH24:MI:SS') as fecha_notificacion,
-          sismo_hash
+          sismo_hash`;
+
+    if (minutes) {
+      // Devuelve sismos registrados en los últimos N minutos
+      query = `
+        SELECT ${selectFields}
+        FROM alertas_sismicas
+        WHERE sismo_hash NOT LIKE 'MOCK-%'
+          AND fecha_notificacion >= NOW() - INTERVAL '${parseInt(minutes, 10)} minutes'
+        ORDER BY fecha_sismo DESC
+      `;
+    } else if (since) {
+      // Devuelve sismos nuevos desde la fecha indicada
+      query = `
+        SELECT ${selectFields}
         FROM alertas_sismicas
         WHERE sismo_hash NOT LIKE 'MOCK-%'
           AND fecha_sismo > $1
@@ -42,19 +54,7 @@ export async function GET(request: Request) {
     } else {
       // Devuelve solo el último sismo registrado
       query = `
-        SELECT
-          id,
-          TO_CHAR(fecha_sismo, 'YYYY-MM-DD"T"HH24:MI:SS') as fecha_sismo,
-          magnitud,
-          escala,
-          profundidad,
-          ubicacion,
-          latitud,
-          longitud,
-          distancia_km,
-          nivel_alerta,
-          TO_CHAR(fecha_notificacion AT TIME ZONE 'UTC' AT TIME ZONE 'America/Santiago', 'YYYY-MM-DD"T"HH24:MI:SS') as fecha_notificacion,
-          sismo_hash
+        SELECT ${selectFields}
         FROM alertas_sismicas
         WHERE sismo_hash NOT LIKE 'MOCK-%'
         ORDER BY fecha_sismo DESC
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
 
     const result = await pool.query(query, params);
 
-    if (since) {
+    if (minutes || since) {
       return NextResponse.json({
         count: result.rows.length,
         sismos: result.rows,
