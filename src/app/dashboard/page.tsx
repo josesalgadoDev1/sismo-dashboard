@@ -717,12 +717,19 @@ function FilterSlider({ label, value, min, max, step, onChange }: any) {
 }
 
 function SismoSmallCard({ s, index, formatDate }: { s: Sismo; index: number; formatDate: any }) {
-  const getMagClass = (m: number) => m >= 6 ? "high" : m >= 5 ? "mid" : m >= 4 ? "warning" : "low";
+  const getMagClass = (nivel: string) => {
+    switch (nivel?.toUpperCase()) {
+      case "ALARMA": return "high";
+      case "ALERTA": return "mid";
+      case "ADVERTENCIA": return "warning";
+      default: return "low";
+    }
+  };
   const getAlertClass = (n: string) => n.toLowerCase();
 
   return (
     <div className="sismo-card" style={{ animationDelay: `${index * 0.03}s` }}>
-      <div className={`sismo-mag ${getMagClass(s.magnitud)}`}>{Number(s.magnitud).toFixed(1)}</div>
+      <div className={`sismo-mag ${getMagClass(s.nivel_alerta)}`}>{Number(s.magnitud).toFixed(1)}</div>
       <div className="sismo-body">
         <span className="sismo-location">{s.ubicacion}</span>
         <div className="sismo-meta">
