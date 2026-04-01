@@ -24,7 +24,7 @@ export async function GET() {
         COUNT(*) FILTER (WHERE nivel_alerta = 'ALARMA') as alarma
       FROM alertas_sismicas
       WHERE sismo_hash NOT LIKE 'MOCK-%'
-        AND fecha_sismo >= CURRENT_DATE
+        AND fecha_sismo >= (NOW() AT TIME ZONE 'America/Santiago')::date
     `;
 
     const result = await pool.query(query);
