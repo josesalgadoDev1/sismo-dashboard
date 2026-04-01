@@ -89,7 +89,7 @@ interface StatsData {
   };
   lastEvent: LastEvent | null;
   alertCounts: Record<string, number>;
-  trend: Array<{ fecha: string; cantidad: number; max_magnitud: number }>;
+  trend: Array<{ fecha: string; fecha_full: string; cantidad: number; max_magnitud: number }>;
 }
 
 export default function DashboardPage() {
@@ -432,6 +432,13 @@ export default function DashboardPage() {
 
   const totalPages = Math.ceil(total / limit);
   const statsTrend = useMemo(() => stats?.trend || [], [stats]);
+  const trendYearLabel = useMemo(() => {
+    if (statsTrend.length === 0) return "";
+    const years = [...new Set(statsTrend.map((d) => d.fecha_full?.slice(0, 4)).filter(Boolean))].sort();
+    if (years.length === 0) return "";
+    if (years.length === 1) return `Año ${years[0]}`;
+    return `${years[0]} — ${years[years.length - 1]}`;
+  }, [statsTrend]);
   const trendRef = useRef<HTMLDivElement>(null);
 
   const exportChartImage = async () => {
@@ -639,6 +646,11 @@ export default function DashboardPage() {
               </button>
             </div>
             <div className="trend-chart" ref={trendRef}>
+              {trendYearLabel && (
+                <div style={{ textAlign: "center", fontSize: "0.75rem", color: "var(--text-muted, #94a3b8)", padding: "8px 12px 0", fontStyle: "italic" }}>
+                  {trendYearLabel}
+                </div>
+              )}
               {statsTrend.length > 0 ? <TrendChart data={statsTrend} /> : <LoadingBox />}
             </div>
           </section>
