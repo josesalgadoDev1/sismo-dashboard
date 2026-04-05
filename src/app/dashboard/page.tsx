@@ -655,6 +655,9 @@ export default function DashboardPage() {
             </div>
           </section>
         </div>
+        <footer className="dashboard-footer">
+          Datos sísmicos obtenidos de <a href="https://www.sismologia.cl" target="_blank" rel="noopener noreferrer">sismología.cl</a> · Centro Sismológico Nacional, Universidad de Chile
+        </footer>
       </div>
     </div>
   );
