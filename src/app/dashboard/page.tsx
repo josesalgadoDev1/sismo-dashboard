@@ -163,6 +163,27 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Polling: actualizar último sismo cada 30s en tiempo real
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/sismos/latest");
+        const data = await res.json();
+        if (data.sismo) {
+          setStats((prev) => {
+            if (!prev) return prev;
+            // Solo actualizar si cambió el sismo
+            if (prev.lastEvent?.id === data.sismo.id) return prev;
+            return { ...prev, lastEvent: data.sismo };
+          });
+        }
+      } catch {
+        // Silenciar errores de red en polling
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   // On filter change — debounce 300ms so sliders feel fluid
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
