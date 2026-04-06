@@ -602,7 +602,7 @@ export default function DashboardPage() {
               <input type="date" value={filters.endDate} onChange={(e) => setFilters({ ...filters, endDate: e.target.value, periodo: "" })} />
             </div>
             <FilterSlider label="Magnitud Mínima" value={filters.minMag || "0"} min="0" max="9" step="0.5" onChange={(v: string) => setFilters({...filters, minMag: v === "0" ? "" : v})} />
-            <FilterSlider label="Distancia Máx." value={filters.maxDist || "500"} min="0" max="500" step="10" onChange={(v: string) => setFilters({...filters, maxDist: v === "500" ? "" : v})} />
+            <FilterSlider label="Distancia Máx." value={filters.maxDist || "600"} min="0" max="600" step="10" onChange={(v: string) => setFilters({...filters, maxDist: v === "600" ? "" : v})} />
           </div>
 
           <button className="btn-screenshot" onClick={exportDashboardImage}><Camera size={14} /> Captura Dashboard</button>
