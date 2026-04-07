@@ -44,6 +44,7 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [exporting, setExporting] = useState<"excel"|"csv"|"pdf"|"kmz"|null>(null);
   const limit = 10;
 
   const [filters, setFilters] = useState({
@@ -110,16 +111,22 @@ export default function Home() {
   };
 
   const fetchFullData = async () => {
-    const params = new URLSearchParams();
-    if (filters.minMag) params.append("minMag", filters.minMag);
-    if (filters.maxMag) params.append("maxMag", filters.maxMag);
-    if (filters.startDate) params.append("startDate", filters.startDate);
-    if (filters.endDate) params.append("endDate", filters.endDate);
-    if (filters.maxDist) params.append("maxDist", filters.maxDist);
-    params.append("limit", "2000"); // Límite alto para exportación completa
-
+    const buildExportParams = (limit: string) => {
+      const params = new URLSearchParams();
+      if (filters.minMag) params.append("minMag", filters.minMag);
+      if (filters.maxMag) params.append("maxMag", filters.maxMag);
+      if (filters.startDate) params.append("startDate", filters.startDate);
+      if (filters.endDate) params.append("endDate", filters.endDate);
+      if (filters.maxDist) params.append("maxDist", filters.maxDist);
+      params.append("limit", limit);
+      return params;
+    };
     try {
-      const res = await fetch(`/api/sismos?${params.toString()}`);
+      const countRes = await fetch(`/api/sismos?${buildExportParams("1").toString()}`);
+      const countData = await countRes.json();
+      const totalCount = countData.total || 0;
+
+      const res = await fetch(`/api/sismos?${buildExportParams(String(totalCount)).toString()}`);
       const result = await res.json();
       return result.data || [];
     } catch (err) {
@@ -129,7 +136,9 @@ export default function Home() {
   };
 
   const exportExcel = async () => {
+    setExporting("excel");
     const allData = await fetchFullData();
+    setExporting(null);
     if (allData.length === 0) return;
 
     // Preparar datos con cabeceras bonitas
@@ -159,7 +168,9 @@ export default function Home() {
   };
 
   const exportCSV = async () => {
+    setExporting("csv");
     const allData = await fetchFullData();
+    setExporting(null);
     if (allData.length === 0) return;
 
     const dataToExport = allData.map((s: Sismo) => ({
@@ -181,7 +192,9 @@ export default function Home() {
   };
 
   const exportPDF = async () => {
+    setExporting("pdf");
     const allData = await fetchFullData();
+    setExporting(null);
     if (allData.length === 0) return;
 
     const doc = new jsPDF() as any;
@@ -242,7 +255,9 @@ export default function Home() {
   };
 
   const exportKMZ = async () => {
+    setExporting("kmz");
     const allData = await fetchFullData();
+    setExporting(null);
     if (allData.length === 0) return;
 
     const radiusKM = filters.maxDist ? parseFloat(filters.maxDist) : null;
@@ -442,10 +457,18 @@ export default function Home() {
 
       {mounted && (
         <div className="export-buttons">
-          <button className="btn btn-secondary" onClick={exportExcel} disabled={sismos.length === 0}><TableIcon size={18} /> Exportar Excel</button>
-          <button className="btn btn-secondary" onClick={exportCSV} disabled={sismos.length === 0}><FileText size={18} /> Exportar CSV</button>
-          <button className="btn btn-secondary" onClick={exportPDF} disabled={sismos.length === 0}><FileText size={18} /> Exportar PDF</button>
-          <button className="btn btn-secondary" onClick={exportKMZ} disabled={sismos.length === 0}><Globe size={18} /> Google Earth</button>
+          <button className="btn btn-secondary" onClick={exportExcel} disabled={sismos.length === 0 || !!exporting}>
+            {exporting === "excel" ? <span className="btn-spinner" /> : <TableIcon size={18} />} Exportar Excel
+          </button>
+          <button className="btn btn-secondary" onClick={exportCSV} disabled={sismos.length === 0 || !!exporting}>
+            {exporting === "csv" ? <span className="btn-spinner" /> : <FileText size={18} />} Exportar CSV
+          </button>
+          <button className="btn btn-secondary" onClick={exportPDF} disabled={sismos.length === 0 || !!exporting}>
+            {exporting === "pdf" ? <span className="btn-spinner" /> : <FileText size={18} />} Exportar PDF
+          </button>
+          <button className="btn btn-secondary" onClick={exportKMZ} disabled={sismos.length === 0 || !!exporting}>
+            {exporting === "kmz" ? <span className="btn-spinner" /> : <Globe size={18} />} Google Earth
+          </button>
         </div>
       )}
 

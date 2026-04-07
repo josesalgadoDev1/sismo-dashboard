@@ -49,7 +49,14 @@ body.dark-mode {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--card-border) transparent;
 }
+
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 99px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 body {
   background: var(--background);
@@ -977,6 +984,7 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
 /* LOADING */
 .loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; }
 .loading-spinner { width: 30px; height: 30px; border: 3px solid rgba(59, 130, 246, 0.2); border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
+.btn-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: currentColor; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-text { font-size: 0.8rem; color: var(--text-muted); }
 
@@ -1144,29 +1152,66 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
 }
 
 /* ========================================
-   PIEZÓMETROS — MAPA CON CAPAS
+   CAPAS — MAPA CON PANEL LATERAL
 ======================================== */
-.piezometros-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
+.capas-layout {
+  position: relative;
   height: calc(100vh - 56px);
   background: var(--background);
   overflow: hidden;
 }
 
-.piezo-sidebar {
+.capas-toolbar {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 44px;
+  background: rgba(30, 30, 30, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 8px;
+  gap: 4px;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+.capas-toolbar-btn {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.capas-toolbar-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.capas-toolbar-btn.active { background: rgba(59,130,246,0.25); color: #60a5fa; }
+
+.capas-sidebar {
+  position: absolute;
+  top: 0; left: 44px; bottom: 0;
+  width: 260px;
   display: flex;
   flex-direction: column;
   background: var(--panel-bg);
   border-right: 1px solid var(--card-border);
-  overflow: hidden;
+  z-index: 550;
+  transform: translateX(-110%);
+  transition: transform 0.25s ease;
+  box-shadow: 4px 0 16px rgba(0,0,0,0.1);
 }
+.capas-sidebar.open { transform: translateX(0); }
 
-.piezo-sidebar-header {
+.capas-sidebar-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.9rem 1rem;
+  padding: 0.7rem 1rem;
   font-weight: 800;
   font-size: 0.75rem;
   letter-spacing: 0.08em;
@@ -1175,15 +1220,30 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
   background: var(--panel-header-bg);
 }
 
-.piezo-sidebar-body {
+.capas-close-btn {
+  margin-left: auto;
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.capas-close-btn:hover { background: var(--btn-bg); color: var(--foreground); }
+
+.capas-sidebar-body {
   flex: 1;
   overflow-y: auto;
   padding: 0.5rem;
 }
 
-.piezo-categoria { margin-bottom: 0.25rem; }
+.capas-categoria { margin-bottom: 0.25rem; }
 
-.piezo-categoria-header {
+.capas-categoria-header {
   width: 100%;
   display: flex;
   align-items: center;
@@ -1200,10 +1260,10 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
   text-align: left;
   transition: background 0.15s ease;
 }
-.piezo-categoria-header:hover:not(.disabled) { background: var(--btn-bg); }
-.piezo-categoria-header.disabled { cursor: not-allowed; opacity: 0.55; }
+.capas-categoria-header:hover { background: var(--btn-bg); }
+.capas-categoria-header.sin-capas { opacity: 0.55; }
 
-.piezo-badge-soon {
+.capas-badge-soon {
   margin-left: auto;
   font-size: 0.62rem;
   font-weight: 700;
@@ -1214,14 +1274,14 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
   border-radius: 4px;
 }
 
-.piezo-capas-list {
+.capas-list {
   padding-left: 1.1rem;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.piezo-capa-item {
+.capas-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1232,10 +1292,10 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
   background: var(--sismo-card-bg);
 }
 
-.piezo-capa-nombre { font-size: 0.82rem; font-weight: 600; color: var(--foreground); }
-.piezo-capa-sub { font-size: 0.7rem; color: var(--text-muted); }
+.capas-item-nombre { font-size: 0.82rem; font-weight: 600; color: var(--foreground); }
+.capas-item-sub { font-size: 0.7rem; color: var(--text-muted); }
 
-.piezo-eye-btn {
+.capas-eye-btn {
   width: 28px; height: 28px;
   border-radius: 6px;
   background: transparent;
@@ -1247,15 +1307,16 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
   justify-content: center;
   transition: all 0.15s ease;
 }
-.piezo-eye-btn:hover { background: var(--btn-bg); color: var(--foreground); border-color: var(--card-border); }
+.capas-eye-btn:hover { background: var(--btn-bg); color: var(--foreground); border-color: var(--card-border); }
+.capas-eye-btn.active { color: var(--accent); }
 
-.piezo-sidebar-footer {
+.capas-sidebar-footer {
   padding: 0.75rem 1rem;
   border-top: 1px solid var(--card-border);
   background: var(--panel-header-bg);
 }
 
-.piezo-toggle-labels {
+.capas-toggle-labels {
   display: flex;
   align-items: center;
   gap: 0.45rem;
@@ -1264,14 +1325,15 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
   color: var(--text-muted);
   cursor: pointer;
 }
-.piezo-toggle-labels input { cursor: pointer; }
+.capas-toggle-labels input { cursor: pointer; }
 
-.piezo-map-wrap {
-  position: relative;
+.capas-map-wrap {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 
-.piezo-loading {
+.capas-loading {
   position: absolute;
   top: 12px; left: 50%;
   transform: translateX(-50%);
@@ -1285,9 +1347,9 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.piezo-legend {
+.capas-legend {
   position: absolute;
-  bottom: 16px; left: 16px;
+  bottom: 16px; left: 56px;
   z-index: 500;
   background: var(--panel-bg);
   border: 1px solid var(--card-border);
@@ -1296,7 +1358,7 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
   min-width: 180px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
-.piezo-legend-title {
+.capas-legend-title {
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -1307,7 +1369,7 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
   padding-bottom: 0.4rem;
   border-bottom: 1px solid var(--card-border);
 }
-.piezo-legend-item {
+.capas-legend-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -1315,21 +1377,99 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
   color: var(--text-muted);
   padding: 2px 0;
 }
-.piezo-legend-dot {
+.capas-legend-dot {
   width: 10px; height: 10px; border-radius: 50%;
   border: 1.5px solid white;
   box-shadow: 0 0 0 1px var(--card-border);
 }
-.piezo-legend-count {
+.capas-legend-count {
   margin-left: auto;
   font-weight: 700;
   color: var(--foreground);
 }
 
 @media (max-width: 768px) {
-  .piezometros-layout { grid-template-columns: 220px 1fr; }
+  .capas-sidebar { width: 240px; }
 }
-@media (max-width: 520px) {
-  .piezometros-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-  .piezo-sidebar { max-height: 40vh; }
+@media (max-width: 480px) {
+  .capas-sidebar { width: 100%; }
+}
+
+/* Panel flotante piezómetro (arrastrable) */
+.piezo-float-panel {
+  position: fixed;
+  z-index: 700;
+  width: 300px;
+  max-height: calc(100vh - 80px);
+  background: var(--panel-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+.piezo-float-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--panel-header-bg);
+  border-bottom: 1px solid var(--card-border);
+  cursor: grab;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--foreground);
+}
+.piezo-float-header:active { cursor: grabbing; }
+.piezo-float-header button {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+.piezo-float-header button:hover { background: var(--btn-bg); color: var(--foreground); }
+
+.piezo-float-body {
+  padding: 10px 14px 14px;
+  overflow-y: auto;
+  flex: 1;
+  font-size: 0.78rem;
+}
+
+.piezo-float-section {
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--foreground);
+  margin: 10px 0 6px;
+}
+
+.piezo-float-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 2px 0;
+  gap: 8px;
+}
+
+.piezo-float-label {
+  font-weight: 700;
+  color: var(--foreground);
+  white-space: nowrap;
+  min-width: 110px;
+}
+
+.piezo-float-value {
+  text-align: right;
+  color: var(--text-muted);
+  word-break: break-word;
 }

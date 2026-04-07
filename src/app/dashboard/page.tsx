@@ -100,6 +100,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [stats, setStats] = useState<StatsData | null>(null);
+  const [exporting, setExporting] = useState<"excel"|"csv"|"pdf"|"kmz"|null>(null);
   const limit = 10;
 
   const [filters, setFilters] = useState({
@@ -225,9 +226,16 @@ export default function DashboardPage() {
 
   const fetchFullData = async () => {
     const params = buildParams();
-    params.append("limit", "2000");
+    // Obtener el total real primero, luego pedir todos
+    params.append("limit", "1");
     try {
-      const res = await fetch(`/api/sismos?${params.toString()}`);
+      const countRes = await fetch(`/api/sismos?${params.toString()}`);
+      const countData = await countRes.json();
+      const totalCount = countData.total || 0;
+
+      const allParams = buildParams();
+      allParams.append("limit", String(totalCount));
+      const res = await fetch(`/api/sismos?${allParams.toString()}`);
       const result = await res.json();
       return result.data || [];
     } catch (err) {
@@ -237,7 +245,9 @@ export default function DashboardPage() {
   };
 
   const exportExcel = async () => {
+    setExporting("excel");
     const allData = await fetchFullData();
+    setExporting(null);
     if (allData.length === 0) return;
 
     const dataToExport = allData.map((s: Sismo) => ({
@@ -263,7 +273,9 @@ export default function DashboardPage() {
   };
 
   const exportCSV = async () => {
+    setExporting("csv");
     const allData = await fetchFullData();
+    setExporting(null);
     if (allData.length === 0) return;
 
     const dataToExport = allData.map((s: Sismo) => ({
@@ -285,7 +297,9 @@ export default function DashboardPage() {
   };
 
   const exportPDF = async () => {
+    setExporting("pdf");
     const allData = await fetchFullData();
+    setExporting(null);
     if (allData.length === 0) return;
 
     const doc = new jsPDF() as any;
@@ -339,7 +353,9 @@ export default function DashboardPage() {
   };
 
   const exportKMZ = async () => {
+    setExporting("kmz");
     const allData = await fetchFullData();
+    setExporting(null);
     if (allData.length === 0) return;
 
     const radiusKM = filters.maxDist ? parseFloat(filters.maxDist) : null;
@@ -629,12 +645,20 @@ export default function DashboardPage() {
           <button className="btn-screenshot" onClick={exportDashboardImage}><Camera size={14} /> Captura Dashboard</button>
 
           <div className="export-section" style={{ marginTop: "0.5rem" }}>
-            <button className="btn-export" onClick={exportExcel} disabled={total === 0}><TableIcon size={14} /> EXCEL</button>
-            <button className="btn-export" onClick={exportCSV} disabled={total === 0}><FileText size={14} /> CSV</button>
+            <button className="btn-export" onClick={exportExcel} disabled={total === 0 || !!exporting}>
+              {exporting === "excel" ? <span className="btn-spinner" /> : <TableIcon size={14} />} EXCEL
+            </button>
+            <button className="btn-export" onClick={exportCSV} disabled={total === 0 || !!exporting}>
+              {exporting === "csv" ? <span className="btn-spinner" /> : <FileText size={14} />} CSV
+            </button>
           </div>
           <div className="export-section">
-            <button className="btn-export" onClick={exportPDF} disabled={total === 0}><FileText size={14} /> PDF</button>
-            <button className="btn-export" onClick={exportKMZ} disabled={total === 0}><Globe size={14} /> KMZ</button>
+            <button className="btn-export" onClick={exportPDF} disabled={total === 0 || !!exporting}>
+              {exporting === "pdf" ? <span className="btn-spinner" /> : <FileText size={14} />} PDF
+            </button>
+            <button className="btn-export" onClick={exportKMZ} disabled={total === 0 || !!exporting}>
+              {exporting === "kmz" ? <span className="btn-spinner" /> : <Globe size={14} />} KMZ
+            </button>
           </div>
 
           <button className="btn-filter secondary" onClick={resetFilters}><RotateCcw size={14} /> Limpiar Filtros</button>
