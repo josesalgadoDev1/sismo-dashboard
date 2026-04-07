@@ -124,7 +124,7 @@ export default function SismoMap({ sismos, radiusKm }: SismoMapProps) {
       radiusLayerRef.current = null;
     }
 
-    if (radiusKm && radiusKm > 0 && radiusKm < 500) {
+    if (radiusKm && radiusKm > 0 && radiusKm <= 600) {
       const circle = L.circle(COLLAHUASI_CENTER, {
         radius: radiusKm * 1000,
         color: "#ef4444",
