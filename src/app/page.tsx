@@ -387,11 +387,13 @@ export default function Home() {
     }
   };
 
-  const getMagColor = (mag: any) => {
-    const val = Number(mag);
-    if (val >= 6.0) return "magnitude-high";
-    if (val >= 5.0) return "magnitude-mid";
-    return "magnitude-low";
+  const getMagColor = (nivel: string) => {
+    switch (nivel?.toUpperCase()) {
+      case "ALARMA": return "magnitude-high";
+      case "ALERTA": return "magnitude-mid";
+      case "ADVERTENCIA": return "magnitude-mid";
+      default: return "magnitude-low";
+    }
   };
 
   const totalPages = Math.ceil(total / limit);
@@ -489,7 +491,7 @@ export default function Home() {
             </div>
             {sismos.map((s, i) => (
               <div key={s.id} className="glass-card earthquake-item" style={{ animationDelay: `${i * 0.05}s` }}>
-                <div className={`magnitude-badge ${getMagColor(s.magnitud)}`}>
+                <div className={`magnitude-badge ${getMagColor(s.nivel_alerta)}`}>
                   {Number(s.magnitud).toFixed(1)}
                 </div>
                 <div>
