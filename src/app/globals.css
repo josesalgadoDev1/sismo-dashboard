@@ -1388,11 +1388,68 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
   color: var(--foreground);
 }
 
-@media (max-width: 768px) {
+/* Capas: responsive */
+@media (max-width: 900px) {
   .capas-sidebar { width: 240px; }
 }
-@media (max-width: 480px) {
-  .capas-sidebar { width: 100%; }
+
+@media (max-width: 768px) {
+  /* Altura del layout según navbar mobile (48px) */
+  .capas-layout { height: calc(100vh - 48px); }
+
+  /* Sidebar full-width desde el borde (no offset por toolbar) */
+  .capas-sidebar {
+    left: 0;
+    width: 100%;
+    max-width: 320px;
+    z-index: 700;
+  }
+
+  /* Toolbar con sombra para destacar sobre el mapa */
+  .capas-toolbar {
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Panel flotante por encima del sidebar */
+  .piezo-float-panel { z-index: 900; }
+
+  /* Leyenda más compacta */
+  .capas-legend {
+    left: 52px;
+    right: 12px;
+    bottom: 12px;
+    min-width: 0;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.72rem;
+  }
+  .capas-legend-title {
+    font-size: 0.72rem;
+    margin-bottom: 0.35rem;
+    padding-bottom: 0.3rem;
+  }
+  .capas-legend-item { font-size: 0.7rem; }
+
+  /* Ocultar control de zoom (+/-) del mapa en mobile: bloquea el sidebar */
+  .capas-map-wrap .leaflet-control-zoom { display: none !important; }
+}
+
+@media (max-width: 640px) {
+  /* Sidebar a ancho completo cuando abre */
+  .capas-sidebar { max-width: 100%; }
+
+  /* Panel de piezómetro como bottom sheet (ancla al borde inferior) */
+  .piezo-float-panel {
+    left: 8px !important;
+    right: 8px !important;
+    top: auto !important;
+    bottom: 8px !important;
+    width: auto !important;
+    max-height: 55vh;
+  }
+  .piezo-float-header { cursor: default; }
+
+  /* Cuando hay panel abierto, ocultar la leyenda para evitar solape */
+  .capas-layout:has(.piezo-float-panel) .capas-legend { display: none; }
 }
 
 /* Panel flotante piezómetro (arrastrable) */
@@ -1473,3 +1530,263 @@ body.dark-mode .dashboard .filter-group input[type="date"]::-webkit-calendar-pic
   color: var(--text-muted);
   word-break: break-word;
 }
+
+/* ========================================
+   LOGIN
+======================================== */
+.login-page {
+  min-height: calc(100vh - 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--background);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--panel-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 32px 28px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.login-logo {
+  display: block;
+  width: auto;
+  height: 72px;
+  max-width: 200px;
+  object-fit: contain;
+  margin: 0 auto 18px;
+  transition: filter 0.2s ease;
+}
+
+body.dark-mode .login-logo {
+  filter: brightness(0) invert(1) drop-shadow(0 1px 4px rgba(255, 255, 255, 0.08));
+}
+
+.login-header h1 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: var(--foreground);
+}
+
+.login-header p {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-field label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.login-field input {
+  background: var(--input-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: var(--foreground);
+  outline: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.login-field input:focus {
+  background: var(--input-bg-focus);
+  border-color: var(--accent);
+}
+
+.login-error {
+  font-size: 0.8rem;
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.login-submit {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+.login-submit:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.login-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-hint {
+  margin: 10px 0 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Navbar user chip + logout */
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--btn-bg);
+  font-size: 0.75rem;
+  color: var(--foreground);
+}
+
+.navbar-user-role {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: white;
+}
+
+.navbar-user-role.operador {
+  background: var(--warning);
+}
+
+.navbar-logout-btn,
+.navbar-login-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--btn-bg);
+  border: 1px solid var(--card-border);
+  color: var(--foreground);
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.navbar-logout-btn:hover,
+.navbar-login-btn:hover {
+  background: var(--btn-bg-hover);
+}
+
+.navbar-login-btn {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.navbar-login-btn:hover {
+  background: var(--accent-hover);
+}
+
+/* ========================================
+   RESPONSIVE — NAVBAR (modo admin con 3 dropdowns)
+======================================== */
+
+/* Evita que brand/links/botones se aplasten raro */
+.navbar-brand { flex-shrink: 0; }
+.navbar-links { flex-wrap: wrap; }
+.navbar-right { flex-shrink: 0; }
+
+/* ~1180px: compacta el gap del bloque izquierdo y los dropdowns */
+@media (max-width: 1180px) {
+  .app-navbar { padding: 0 1.2rem; }
+  .navbar-left { gap: 1.1rem; }
+  .navbar-link { padding: 0.4rem 0.75rem; }
+  .navbar-right { gap: 0.5rem; }
+}
+
+/* ~1024px: ocultamos texto del chip de usuario y el "En línea" se queda solo con el dot */
+@media (max-width: 1024px) {
+  .navbar-user-name { display: none; }
+  .navbar-status .status-text { display: none; }
+  .navbar-status { padding: 0.3rem 0.5rem; }
+  .navbar-logout-label { display: none; }
+  .navbar-logout-btn { padding: 7px 9px; }
+}
+
+/* ~880px: ocultamos el chip de usuario completo (queda el botón salir) */
+@media (max-width: 880px) {
+  .navbar-user { display: none; }
+  .navbar-title { font-size: 0.78rem; }
+  .navbar-subtitle { display: none; }
+}
+
+/* ~720px: ocultamos el label "Sismos/Capas/Admin" de los dropdowns, solo iconos */
+@media (max-width: 720px) {
+  .navbar-link-btn span { display: none; }
+  .navbar-link-btn { padding: 0.4rem 0.55rem; }
+  .navbar-left { gap: 0.6rem; }
+}
+
+/* ~560px: simplificamos al máximo */
+@media (max-width: 560px) {
+  .app-navbar { padding: 0 0.75rem; }
+  .navbar-brand-text { display: none; }
+  .navbar-status { display: none; }
+  .navbar-link span { display: none; }
+  .navbar-login-label { display: none; }
+  .navbar-login-btn { padding: 7px 9px; }
+}
+
+/* ========================================
+   RESPONSIVE — CONTAINER (admin pages)
+======================================== */
+@media (max-width: 900px) {
+  .container { padding: 1.25rem; }
+}
+@media (max-width: 640px) {
+  .container { padding: 0.9rem; }
+  .glass-card { padding: 1rem; }
+  .btn { padding: 0.65rem 1.1rem; font-size: 0.82rem; }
+}
+
+/* Tablas de admin: en mobile reducimos padding interno */
+@media (max-width: 640px) {
+  .container table { font-size: 0.78rem; }
+  .container th, .container td { padding: 0.55rem 0.65rem !important; }
+}
+

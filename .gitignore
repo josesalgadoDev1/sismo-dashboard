@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# archivos de datos locales (fuentes de referencia, no van a prod)
+*.xlsx
+*.kml
+
+# repos/carpetas de referencia local
+/api-externa-mirar/
+
+# scripts SQL one-shot de carga local (las migraciones van en /sql)
+/insert_piezometros.sql
