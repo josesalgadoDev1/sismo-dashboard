@@ -361,10 +361,11 @@ export default function AdminPiezometrosPage() {
     setImportStep("importing");
     setImportError(null);
 
-    // Next.js corta request bodies a 10 MB por defecto. Con 600k+ filas el
-    // JSON pesa decenas de MB y falla el parseo server-side. Solución:
-    // chunkear el envío en batches chicos y acumular resultados.
-    const CHUNK_SIZE = 50_000;
+    // Vercel corta requests > 4.5 MB en el edge proxy y mata las funciones
+    // Serverless a los 10 s en plan Hobby. Con 5k records cada chunk pesa
+    // ~400 KB y se inserta en una sola pasada al backend, dejando margen
+    // amplio en ambos límites.
+    const CHUNK_SIZE = 5_000;
     const records = importPreview.records;
     const total = Math.ceil(records.length / CHUNK_SIZE);
     setImportProgress({ done: 0, total });
@@ -379,8 +380,19 @@ export default function AdminPiezometrosPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ records: chunk }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Error al importar");
+        // Lectura defensiva: si el host (Vercel) responde con texto plano
+        // (413, 504, etc.) `res.json()` reventaba con "Unexpected token 'R'"
+        // y enmascaraba el error real.
+        const ct = res.headers.get("content-type") || "";
+        const data = ct.includes("application/json")
+          ? await res.json()
+          : { error: `HTTP ${res.status}: ${(await res.text()).slice(0, 200)}` };
+        if (!res.ok) {
+          throw new Error(
+            data.error ||
+            `Error ${res.status} en chunk ${idx + 1}/${total}`
+          );
+        }
         acc.inserted += data.inserted ?? 0;
         acc.skipped += data.skipped ?? 0;
         (data.not_found ?? []).forEach((id: string) => acc.not_found.add(id));
