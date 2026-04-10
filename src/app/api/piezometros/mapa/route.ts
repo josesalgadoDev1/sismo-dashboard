@@ -65,8 +65,8 @@ export async function GET() {
         ) m_first ON true
         LEFT JOIN LATERAL (
           SELECT
-            MIN(fecha_lectura) AS primera_fecha,
-            MAX(fecha_lectura) AS ultima_fecha,
+            MIN(fecha_lectura) AT TIME ZONE 'America/Santiago' AS primera_fecha,
+            MAX(fecha_lectura) AT TIME ZONE 'America/Santiago' AS ultima_fecha,
             COUNT(*)::int AS total_registros
           FROM mediciones_piezometros
           WHERE piezometro_id = p.id
