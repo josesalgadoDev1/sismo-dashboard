@@ -8,8 +8,11 @@ import {
   Mountain, Ruler, ShieldAlert, Waves, Activity, Truck,
 } from "lucide-react";
 import type { PiezometroMapItem } from "../components/PiezometroMap";
+import { latLonToUtm, latLonToSlc } from "@/lib/coords";
 
 const PiezometroMap = dynamic(() => import("../components/PiezometroMap"), { ssr: false });
+
+type CoordTab = "GEO" | "UTM" | "MINA";
 
 const SENTINA_CENTER: [number, number] = [-20.940803, -68.603681];
 
@@ -77,6 +80,7 @@ export default function CapasPage() {
 
   // Panel flotante
   const [selectedPiezo, setSelectedPiezo] = useState<PiezometroMapItem | null>(null);
+  const [coordTab, setCoordTab] = useState<CoordTab>("GEO");
   const [panelPos, setPanelPos] = useState({ x: 0, y: 0 });
   const dragging = useRef(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -146,6 +150,33 @@ export default function CapasPage() {
   }, []);
 
   const alertColorName = selectedPiezo ? ALERT_COLORS[selectedPiezo.nivel_alerta] : "";
+
+  // Coordenadas en los tres sistemas (GEO / UTM 19S / Mina). Solo se calcula
+  // cuando cambia el piezómetro seleccionado, no en cada render del drag.
+  type CoordSet = {
+    a: { label: string; value: string };
+    b: { label: string; value: string };
+    extra?: string;
+  };
+  const coordSets = useMemo<Record<CoordTab, CoordSet> | null>(() => {
+    if (!selectedPiezo || selectedPiezo.latitud == null || selectedPiezo.longitud == null) {
+      return null;
+    }
+    const lat = Number(selectedPiezo.latitud);
+    const lon = Number(selectedPiezo.longitud);
+    if (Number.isNaN(lat) || Number.isNaN(lon)) return null;
+    try {
+      const utm = latLonToUtm(lat, lon, "19S");
+      const slc = latLonToSlc(lat, lon);
+      return {
+        GEO: { a: { label: "Lat. [°]", value: lat.toFixed(6) }, b: { label: "Lon. [°]", value: lon.toFixed(6) } },
+        UTM: { a: { label: "Este [m]", value: utm.este.toFixed(2) }, b: { label: "Norte [m]", value: utm.norte.toFixed(2) }, extra: "Zona 19S" },
+        MINA: { a: { label: "Este [m]", value: slc.este.toFixed(2) }, b: { label: "Norte [m]", value: slc.norte.toFixed(2) }, extra: "SLC" },
+      };
+    } catch {
+      return null;
+    }
+  }, [selectedPiezo]);
 
   return (
     <main className="capas-layout">
@@ -295,7 +326,11 @@ export default function CapasPage() {
               <span className="piezo-float-value">{selectedPiezo.total_registros ?? "—"}</span>
             </div>
             <div className="piezo-float-row">
-              <span className="piezo-float-label">Presión [bar]</span>
+              <span className="piezo-float-label">Presión inicial [bar]</span>
+              <span className="piezo-float-value">{selectedPiezo.primera_presion ?? "—"}</span>
+            </div>
+            <div className="piezo-float-row">
+              <span className="piezo-float-label">Presión actual [bar]</span>
               <span className="piezo-float-value">{selectedPiezo.ultima_presion ?? "—"}</span>
             </div>
             <div className="piezo-float-row">
@@ -328,15 +363,58 @@ export default function CapasPage() {
               <span className="piezo-float-value">{selectedPiezo.umbral_alarma ?? "—"}</span>
             </div>
 
-            <div className="piezo-float-section" style={{ marginTop: 6, paddingTop: 8, borderTop: "1px solid var(--card-border)" }}>GEOG</div>
-            <div className="piezo-float-row">
-              <span className="piezo-float-label">Lat. [°]</span>
-              <span className="piezo-float-value">{selectedPiezo.latitud ?? "—"}</span>
+            <div className="piezo-float-section" style={{ marginTop: 6, paddingTop: 8, borderTop: "1px solid var(--card-border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+              <span>COORDS</span>
+              <div style={{ display: "flex", gap: 2, padding: 2, background: "var(--card-border)", borderRadius: 6 }}>
+                {(["GEO", "UTM", "MINA"] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setCoordTab(t)}
+                    style={{
+                      padding: "2px 8px",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: 0.4,
+                      borderRadius: 4,
+                      border: "none",
+                      cursor: "pointer",
+                      background: coordTab === t ? "var(--accent)" : "transparent",
+                      color: coordTab === t ? "#fff" : "var(--text-muted)",
+                      transition: "background 0.15s ease",
+                    }}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="piezo-float-row">
-              <span className="piezo-float-label">Lon. [°]</span>
-              <span className="piezo-float-value">{selectedPiezo.longitud ?? "—"}</span>
-            </div>
+            {coordSets ? (
+              <>
+                <div className="piezo-float-row">
+                  <span className="piezo-float-label">{coordSets[coordTab].a.label}</span>
+                  <span className="piezo-float-value">{coordSets[coordTab].a.value}</span>
+                </div>
+                <div className="piezo-float-row">
+                  <span className="piezo-float-label">{coordSets[coordTab].b.label}</span>
+                  <span className="piezo-float-value">{coordSets[coordTab].b.value}</span>
+                </div>
+                {coordSets[coordTab].extra && (
+                  <div className="piezo-float-row">
+                    <span className="piezo-float-label">Sistema</span>
+                    <span className="piezo-float-value" style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                      {coordSets[coordTab].extra}
+                    </span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="piezo-float-row">
+                <span className="piezo-float-value" style={{ color: "var(--text-muted)", fontStyle: "italic" }}>
+                  Sin coordenadas
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}

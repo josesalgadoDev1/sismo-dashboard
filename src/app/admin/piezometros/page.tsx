@@ -192,6 +192,7 @@ export default function AdminPiezometrosPage() {
   const [importError, setImportError] = useState<string | null>(null);
   const [importProgress, setImportProgress] = useState<{ done: number; total: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const importAbortRef = useRef<AbortController | null>(null);
 
   const fetchPiezometros = async (p = page) => {
     setLoading(true);
@@ -372,6 +373,9 @@ export default function AdminPiezometrosPage() {
 
     const acc = { inserted: 0, skipped: 0, not_found: new Set<string>() };
 
+    const controller = new AbortController();
+    importAbortRef.current = controller;
+
     try {
       for (let start = 0, idx = 0; start < records.length; start += CHUNK_SIZE, idx++) {
         const chunk = records.slice(start, start + CHUNK_SIZE);
@@ -379,6 +383,7 @@ export default function AdminPiezometrosPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ records: chunk }),
+          signal: controller.signal,
         });
         // Lectura defensiva: si el host (Vercel) responde con texto plano
         // (413, 504, etc.) `res.json()` reventaba con "Unexpected token 'R'"
@@ -405,11 +410,22 @@ export default function AdminPiezometrosPage() {
       });
       setImportStep("done");
     } catch (err: any) {
-      setImportError(err.message);
+      if (err.name === "AbortError") {
+        setImportError(
+          `Importación cancelada. Se alcanzaron a insertar ${acc.inserted.toLocaleString()} registros antes de cancelar.`
+        );
+      } else {
+        setImportError(err.message);
+      }
       setImportStep("preview");
     } finally {
+      importAbortRef.current = null;
       setImportProgress(null);
     }
+  };
+
+  const cancelImport = () => {
+    importAbortRef.current?.abort();
   };
 
   const totalPages = Math.ceil(total / limit);
@@ -530,7 +546,7 @@ export default function AdminPiezometrosPage() {
 
       {showImport && createPortal(
         <div
-          onClick={() => setShowImport(false)}
+          onClick={() => { if (importStep !== "importing") setShowImport(false); }}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "1rem" }}
         >
           <div
@@ -542,7 +558,15 @@ export default function AdminPiezometrosPage() {
               <h2 style={{ fontSize: "1.15rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 <Upload size={18} /> Importar Mediciones
               </h2>
-              <button className="btn-icon" onClick={() => setShowImport(false)}><X size={18} /></button>
+              <button
+                className="btn-icon"
+                onClick={() => setShowImport(false)}
+                disabled={importStep === "importing"}
+                title={importStep === "importing" ? "No se puede cerrar durante la importación" : "Cerrar"}
+                style={importStep === "importing" ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
+              >
+                <X size={18} />
+              </button>
             </div>
 
             {importError && (
@@ -646,6 +670,11 @@ export default function AdminPiezometrosPage() {
                     </p>
                   </div>
                 )}
+                <div style={{ marginTop: "1.5rem" }}>
+                  <button className="btn btn-secondary" onClick={cancelImport}>
+                    <X size={16} /> Cancelar importación
+                  </button>
+                </div>
               </div>
             )}
 

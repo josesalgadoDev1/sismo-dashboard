@@ -18,6 +18,7 @@ export interface PiezometroMapItem {
   ultimo_nivel: string | null;
   ultimo_offset: string | null;
   ultima_presion: string | null;
+  primera_presion: string | null;
   diferencia_m: string | null;
   nivel_alerta: "ALARMA" | "ALERTA" | "ADVERTENCIA" | "NORMAL" | "SIN_DATO";
   umbral_advertencia: string | null;

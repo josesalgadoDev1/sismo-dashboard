@@ -122,6 +122,80 @@ export function utmToLatLon(
 }
 
 /**
+ * WGS84 lat/lon → UTM. Implementación directa de las fórmulas USGS
+ * (Snyder, "Map Projections — A Working Manual", 1987, §8). Es la
+ * inversa exacta de `utmToLatLon`. Precisión ~mm dentro de la zona.
+ */
+export function latLonToUtm(
+  lat: number,
+  lon: number,
+  zona: string = DEFAULT_UTM_ZONE
+): { este: number; norte: number; zona: string } {
+  if (!isValidUtmZone(zona)) {
+    throw new Error(`Zona UTM no soportada: ${zona}`);
+  }
+  const zoneNum = zoneNumber(zona);
+  const south = zoneIsSouth(zona);
+
+  const phi = lat * DEG;
+  const lambda = lon * DEG;
+  const lambda0 = centralMeridianRad(zoneNum);
+
+  const sinPhi = Math.sin(phi);
+  const cosPhi = Math.cos(phi);
+  const tanPhi = Math.tan(phi);
+
+  const N = WGS84_A / Math.sqrt(1 - E2 * sinPhi * sinPhi);
+  const T = tanPhi * tanPhi;
+  const T2 = T * T;
+  const C = EP2 * cosPhi * cosPhi;
+  const C2 = C * C;
+  const A = (lambda - lambda0) * cosPhi;
+  const A2 = A * A;
+  const A3 = A2 * A;
+  const A4 = A2 * A2;
+  const A5 = A4 * A;
+  const A6 = A4 * A2;
+
+  const M =
+    WGS84_A *
+    ((1 - E2 / 4 - 3 * E4 / 64 - 5 * E6 / 256) * phi -
+      (3 * E2 / 8 + 3 * E4 / 32 + 45 * E6 / 1024) * Math.sin(2 * phi) +
+      (15 * E4 / 256 + 45 * E6 / 1024) * Math.sin(4 * phi) -
+      (35 * E6 / 3072) * Math.sin(6 * phi));
+
+  const x =
+    UTM_K0 *
+    N *
+    (A +
+      ((1 - T + C) * A3) / 6 +
+      ((5 - 18 * T + T2 + 72 * C - 58 * EP2) * A5) / 120);
+
+  const y =
+    UTM_K0 *
+    (M +
+      N *
+        tanPhi *
+        (A2 / 2 +
+          ((5 - T + 9 * C + 4 * C2) * A4) / 24 +
+          ((61 - 58 * T + T2 + 600 * C - 330 * EP2) * A6) / 720));
+
+  const este = x + 500000;
+  const norte = south ? y + 10000000 : y;
+
+  return { este, norte, zona };
+}
+
+/** WGS84 lat/lon → Sistema Local Collahuasi (SLC), encadenando vía UTM 19S. */
+export function latLonToSlc(
+  lat: number,
+  lon: number
+): { este: number; norte: number } {
+  const { este, norte } = latLonToUtm(lat, lon, "19S");
+  return utmToSlc(este, norte);
+}
+
+/**
  * Sistema Local Collahuasi (SLC) → WGS84 UTM 19S.
  *
  * Fórmulas del conversor oficial Collahuasi (GeoExploraciones 2009):
