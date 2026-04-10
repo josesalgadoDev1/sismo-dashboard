@@ -767,16 +767,17 @@ body.dark-mode .navbar-logo {
 }
 
 .alert-criteria {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   opacity: 0.6;
   font-variant-numeric: tabular-nums;
-  padding: 2px 8px;
-  border-radius: 999px;
+  padding: 4px 8px;
+  border-radius: 8px;
   background: rgba(127, 127, 127, 0.08);
   border: 1px solid rgba(127, 127, 127, 0.18);
-  white-space: nowrap;
+  text-align: center;
+  line-height: 1.2;
 }
 .alert-label { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.7; }
 .alert-count { font-size: 2.6rem; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
