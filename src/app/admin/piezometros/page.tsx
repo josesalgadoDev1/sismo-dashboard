@@ -64,8 +64,10 @@ interface ImportPreview {
   fileType: "FO" | "CV";
 }
 
-function excelSerialToDate(serial: number): Date {
-  return new Date((serial - 25569) * 86400 * 1000);
+function excelSerialToDateStr(serial: number): string {
+  const d = new Date((serial - 25569) * 86400 * 1000);
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
 }
 
 function parseSheet_FO(sheet: XLSX.WorkSheet): ImportRecord[] {
@@ -140,13 +142,14 @@ function parseSheet_CV(sheet: XLSX.WorkSheet): ImportRecord[] {
       if (dateVal === null || dateVal === undefined || dateVal === "") continue;
       let dateStr = "";
       if (typeof dateVal === "number") {
-        dateStr = excelSerialToDate(dateVal).toISOString();
+        dateStr = excelSerialToDateStr(dateVal);
       } else {
         const s = String(dateVal).trim();
         if (!s) continue;
         const parsed = new Date(s);
         if (isNaN(parsed.getTime())) continue;
-        dateStr = parsed.toISOString();
+        const pad = (n: number) => n.toString().padStart(2, "0");
+        dateStr = `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())} ${pad(parsed.getHours())}:${pad(parsed.getMinutes())}:${pad(parsed.getSeconds())}`;
       }
       const presion = presVal !== null && presVal !== "" && !isNaN(Number(presVal)) ? Number(presVal) : null;
       records.push({ identificador: pair.name, fecha_lectura: dateStr, presion_bar: presion });
