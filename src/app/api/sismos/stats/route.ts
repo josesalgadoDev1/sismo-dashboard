@@ -77,7 +77,7 @@ export async function GET(request: Request) {
 
     // Alert level counts
     const alertQuery = `
-      SELECT 
+      SELECT
         nivel_alerta,
         COUNT(*) as count
       FROM alertas_sismicas ${whereClause}
@@ -93,6 +93,19 @@ export async function GET(request: Request) {
     alertRes.rows.forEach((row: any) => {
       alertCounts[row.nivel_alerta] = parseInt(row.count, 10);
     });
+
+    // "Alerta — Extraordinario" según tabla TAPP del Muro Principal (WSP):
+    //   Evento sísmico con magnitud ≥ 6,0 Mw en un radio ≤ 200 km a la faena.
+    // Se calcula directo desde magnitud + distancia_km, NO depende del
+    // nivel_alerta clasificado en ingest (que aún no usa `g`).
+    const extraordinarioQuery = `
+      SELECT COUNT(*)::int AS count
+      FROM alertas_sismicas ${whereClause}
+        AND magnitud >= 6.0
+        AND distancia_km <= 200
+    `;
+    const extraordinarioRes = await pool.query(extraordinarioQuery, params);
+    const extraordinarioCount = extraordinarioRes.rows[0]?.count ?? 0;
 
     // Temporal trend grouped by date with alert level breakdown
     const trendQuery = `
@@ -123,6 +136,7 @@ export async function GET(request: Request) {
       },
       lastEvent,
       alertCounts,
+      extraordinarioCount,
       trend: trendRes.rows.reverse() // Oldest first for chart
     });
   } catch (err: any) {

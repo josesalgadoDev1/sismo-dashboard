@@ -89,6 +89,7 @@ interface StatsData {
   };
   lastEvent: LastEvent | null;
   alertCounts: Record<string, number>;
+  extraordinarioCount: number;
   trend: Array<{ fecha: string; fecha_full: string; cantidad: number; max_magnitud: number }>;
 }
 
@@ -585,11 +586,21 @@ export default function DashboardPage() {
         </section>
 
         <section className="alert-strip">
-          <AlertBox label="Normal" count={stats?.alertCounts.NORMAL ?? 0} type="normal" />
-          <AlertBox label="Advertencia" count={stats?.alertCounts.ADVERTENCIA ?? 0} type="advertencia" />
-          <AlertBox label="Alerta" count={stats?.alertCounts.ALERTA ?? 0} type="alerta" />
-          <AlertBox label="Alarma" count={stats?.alertCounts.ALARMA ?? 0} type="alarma" />
-          <AlertBox label="Total" count={stats?.kpi.total ?? 0} type="total" />
+          {/*
+            TODO sismos/clasificación: la categorización real depende de la
+            aceleración (g) según tabla TAPP del Muro Principal (WSP). Hoy
+            todavía no tenemos `g` en los registros, así que ADVERTENCIA y
+            ALERTA (por aceleración) se contabilizan dentro de NORMAL para
+            no mostrar estados falsos. ALARMA se mantiene tal cual.
+            "Alerta (Extraordinario)" SÍ se calcula en el API porque no
+            depende de `g` — es M ≥ 6,0 Mw a R ≤ 200 km de la faena.
+          */}
+          <AlertBox label="Normal"      count={(stats?.alertCounts.NORMAL ?? 0) + (stats?.alertCounts.ADVERTENCIA ?? 0) + (stats?.alertCounts.ALERTA ?? 0)} type="normal"      criteria="a < 0,67 g" />
+          <AlertBox label="Advertencia" count={0}                                                                                                            type="advertencia" criteria="0,48 g ≤ a < 0,67 g" />
+          <AlertBox label="Alerta"      count={0}                                                                                                            type="alerta"      criteria="0,67 g < a < 0,86 g" />
+          <AlertBox label="Alerta"      count={stats?.extraordinarioCount ?? 0}                                                                              type="alerta"      criteria="Extraordinario · M ≥ 6,0 Mw · R ≤ 200 km" />
+          <AlertBox label="Alarma"      count={stats?.alertCounts.ALARMA ?? 0}                                                                               type="alarma"      criteria="a ≥ 0,86 g" />
+          <AlertBox label="Total"       count={stats?.kpi.total ?? 0}                                                                                        type="total" />
         </section>
 
         <aside className="sidebar">
@@ -721,7 +732,7 @@ function KPICard({ icon, label, value, unit, color, small }: any) {
   );
 }
 
-function AlertBox({ label, count, type }: any) {
+function AlertBox({ label, count, type, criteria }: any) {
   const getActiveClass = () => {
     if (count === 0) return "";
     if (type === "advertencia") return "active-warning";
@@ -732,6 +743,7 @@ function AlertBox({ label, count, type }: any) {
 
   return (
     <div className={`alert-counter ${type} ${getActiveClass()}`}>
+      {criteria && <span className="alert-criteria">{criteria}</span>}
       <span className="alert-label">{label}</span>
       <span className="alert-count">{count}</span>
     </div>

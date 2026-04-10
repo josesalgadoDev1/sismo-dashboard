@@ -739,8 +739,9 @@ body.dark-mode .navbar-logo {
   grid-row: 2;
   display: flex;
   justify-content: center;
-  align-items: center;
-  gap: 24px;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 16px;
   padding: 18px 20px;
   background: var(--alert-strip-bg);
   border-bottom: 2px solid var(--card-border);
@@ -748,8 +749,13 @@ body.dark-mode .navbar-logo {
 }
 
 .alert-counter {
-  min-width: 200px;
-  padding: 16px 28px;
+  /* 6 cards en desktop: dejar que cada uno crezca proporcionalmente sin
+     forzar un min-width grande, así no se desborda cuando agregamos el
+     5° card de "Alerta (Extraordinario)". */
+  min-width: 150px;
+  flex: 1 1 160px;
+  max-width: 220px;
+  padding: 14px 20px;
   border-radius: 14px;
   display: flex;
   flex-direction: column;
@@ -760,6 +766,18 @@ body.dark-mode .navbar-logo {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.alert-criteria {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(127, 127, 127, 0.08);
+  border: 1px solid rgba(127, 127, 127, 0.18);
+  white-space: nowrap;
+}
 .alert-label { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.7; }
 .alert-count { font-size: 2.6rem; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
 

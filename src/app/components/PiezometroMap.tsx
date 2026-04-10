@@ -55,6 +55,10 @@ export default function PiezometroMap({ piezometros, center, visible, showLabels
     const map = L.map(containerRef.current, {
       center,
       zoom: 14,
+      // Permitimos llegar a 22 pero los tiles reales se sirven hasta 19
+      // (ver `maxNativeZoom` en las capas). Leaflet escala los del 19
+      // cuando pasamos ese nivel, así no aparece "Map data not available".
+      maxZoom: 22,
       zoomControl: false,
       attributionControl: true,
       preferCanvas: true,
@@ -64,12 +68,22 @@ export default function PiezometroMap({ piezometros, center, visible, showLabels
 
     L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      { attribution: "Tiles &copy; Esri", maxZoom: 19, crossOrigin: "anonymous" }
+      {
+        attribution: "Tiles &copy; Esri",
+        maxNativeZoom: 17,
+        maxZoom: 22,
+        crossOrigin: "anonymous",
+      }
     ).addTo(map);
 
     L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-      { maxZoom: 19, opacity: 0.6, crossOrigin: "anonymous" }
+      {
+        maxNativeZoom: 17,
+        maxZoom: 22,
+        opacity: 0.6,
+        crossOrigin: "anonymous",
+      }
     ).addTo(map);
 
     const centerIcon = L.divIcon({
